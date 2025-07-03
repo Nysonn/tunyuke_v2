@@ -1,10 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore =
-      FirebaseFirestore.instance; // Get an instance of Firestore
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  // Keys for SharedPreferences
+  static const String _kLoggedInKey = 'isLoggedIn';
+  static const String _kUserUidKey = 'userUid';
+
+  // Method to allow a user to Register with Us using email, username and a password
 
   Future<UserCredential> signUpWithEmailAndPassword(
     String email,
@@ -28,16 +34,20 @@ class AuthService {
           'email': email.trim(),
           'createdAt': FieldValue.serverTimestamp(),
         });
+
+        // Save login state after successful sign up
+        await _saveLoginState(true, userCredential.user!.uid);
       }
       return userCredential;
     } on FirebaseAuthException catch (e) {
       throw e;
     } catch (e) {
-      throw Exception('An unexpected error occurred: $e');
+      throw Exception('An unexpected error occurred during sign up: $e');
     }
   }
 
-  // Method to allow users sign in with email and password.
+  // Method to allow a user to Login with Us using email and password
+
   Future<UserCredential> signInWithEmailAndPassword(
     String email,
     String password,
@@ -47,17 +57,51 @@ class AuthService {
         email: email.trim(),
         password: password.trim(),
       );
+
+      // Save login state after successful sign in
+      if (userCredential.user != null) {
+        await _saveLoginState(true, userCredential.user!.uid);
+      }
       return userCredential;
     } on FirebaseAuthException catch (e) {
-      throw e; // Re-throw the Firebase Auth exception to be caught by the UI
+      throw e;
     } catch (e) {
-      throw Exception(
-        'An unexpected error occurred: $e',
-      ); // Re-throw general exceptions
+      throw Exception('An unexpected error occurred during sign in: $e');
     }
   }
 
-  Future<void> signOut() async {
-    await _auth.signOut();
+  // --- Shared Preferences Management ---
+
+  Future<void> _saveLoginState(bool isLoggedIn, String? uid) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kLoggedInKey, isLoggedIn);
+    if (isLoggedIn && uid != null) {
+      await prefs.setString(_kUserUidKey, uid);
+    } else {
+      await prefs.remove(_kUserUidKey);
+    }
+    print("Login state saved: isLoggedIn=$isLoggedIn, uid=$uid");
   }
+
+  Future<bool> isLoggedIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_kLoggedInKey) ?? false;
+  }
+
+  Future<String?> getCurrentUserUid() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_kUserUidKey);
+  }
+
+  Future<void> signOut() async {
+    try {
+      await _auth.signOut();
+      await _saveLoginState(false, null); // Clear login state on logout
+      print("User signed out and login state cleared.");
+    } catch (e) {
+      throw Exception('Error signing out: $e');
+    }
+  }
+
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
 }

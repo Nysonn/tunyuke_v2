@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:tunyuke_v2/dashboard.dart';
 import 'package:tunyuke_v2/login_screen.dart';
 import 'package:tunyuke_v2/register_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tunyuke_v2/services/auth_service.dart';
 
 class WelcomePage extends StatefulWidget {
   @override
@@ -24,6 +24,8 @@ class _WelcomePageState extends State<WelcomePage>
 
   bool _isCheckingCredentials = true;
   String _statusMessage = "Checking user credentials...";
+
+  final AuthService _authService = AuthService(); // Instantiate AuthService
 
   @override
   void initState() {
@@ -67,89 +69,94 @@ class _WelcomePageState extends State<WelcomePage>
     _pulseController.repeat(reverse: true);
 
     // Check user credentials after animations start
-    Future.delayed(Duration(milliseconds: 800), () {
-      checkUserCredentials();
-    });
-  }
+    // Using an auth state listener is more robust than a fixed delay
+    _authService.authStateChanges.listen((User? user) {
+      if (!_isCheckingCredentials)
+        return; // Only process if still checking initially
 
-  void checkUserCredentials() async {
-    try {
-      setState(() {
-        _statusMessage = "Checking login status...";
-      });
+      // Stop pulse animation and then proceed
+      _pulseController.stop();
 
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-
-      if (!isLoggedIn) {
+      if (user == null) {
+        // User is not logged in or token expired
+        _authService.signOut(); // Ensure SharedPreferences are cleared
         setState(() {
           _statusMessage = "Please sign in to continue";
           _isCheckingCredentials = false;
         });
-        _pulseController.stop();
-        return;
+      } else {
+        // User is logged in via Firebase Auth, now verify Firestore data
+        _verifyFirestoreProfile(user.uid);
       }
+    });
 
+    // Initial check in case a user is already signed in (e.g. app killed)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (FirebaseAuth.instance.currentUser != null) {
+        Future.delayed(Duration(milliseconds: 1500), () {});
+      } else {
+        // If no user found immediately, ensure we eventually show action buttons
+        Future.delayed(Duration(milliseconds: 2000), () {
+          if (_isCheckingCredentials) {
+            setState(() {
+              _statusMessage = "Please sign in to continue";
+              _isCheckingCredentials = false;
+            });
+            _pulseController.stop();
+          }
+        });
+      }
+    });
+  }
+
+  Future<void> _verifyFirestoreProfile(String uid) async {
+    try {
       setState(() {
         _statusMessage = "Verifying account...";
       });
 
-      FirebaseAuth auth = FirebaseAuth.instance;
-      User? user = auth.currentUser;
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
 
-      if (user != null) {
+      if (userDoc.exists) {
         setState(() {
-          _statusMessage = "Loading your profile...";
+          _statusMessage = "Welcome back!";
         });
 
-        String uid = auth.currentUser?.uid ?? '';
-        final userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .get();
+        await Future.delayed(Duration(milliseconds: 800));
 
-        if (userDoc.exists) {
-          await prefs.setString('userId', user.uid);
-          await prefs.setString('username', userDoc.data()?['name'] ?? 'Guest');
-          await prefs.setString('userPhone', userDoc.data()?['phone'] ?? '');
-
-          setState(() {
-            _statusMessage = "Welcome back!";
-          });
-
-          // Small delay to show welcome message
-          await Future.delayed(Duration(milliseconds: 800));
-
+        if (mounted) {
+          // Check if the widget is still mounted before navigating
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (_) => DashboardPage()),
             (route) => false,
           );
-        } else {
-          setState(() {
-            _statusMessage = "Please complete your registration";
-          });
-
-          await Future.delayed(Duration(milliseconds: 1500));
-
+        }
+      } else {
+        // Firebase Auth user exists, but no Firestore profile document
+        // This implies incomplete registration or deleted profile.
+        setState(() {
+          _statusMessage = "Please complete your registration";
+        });
+        await Future.delayed(Duration(milliseconds: 1500));
+        if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (_) => RegisterScreen()),
             (route) => false,
           );
         }
-      } else {
-        setState(() {
-          _statusMessage = "Please sign in to continue";
-          _isCheckingCredentials = false;
-        });
-        _pulseController.stop();
       }
     } catch (e) {
+      print("Error verifying Firestore profile: $e");
       setState(() {
-        _statusMessage = "Connection error. Please try again.";
+        _statusMessage = "Error loading profile. Please try again.";
         _isCheckingCredentials = false;
       });
+      _authService.signOut(); // Clear shared_preferences if an error occurs
       _pulseController.stop();
     }
   }
