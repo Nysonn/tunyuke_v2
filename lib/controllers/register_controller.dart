@@ -1,5 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:tunyuke_v2/services/auth_service.dart';
+import 'package:Tunyuke/services/auth_service.dart';
 
 class RegisterController {
   final AuthService _authService;

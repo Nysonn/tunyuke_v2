@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tunyuke_v2/components/common/app_logo_widget.dart';
+import 'package:Tunyuke/components/common/app_logo_widget.dart';
 
 class WelcomeLogoSection extends StatelessWidget {
   final Animation<double> fadeAnimation;

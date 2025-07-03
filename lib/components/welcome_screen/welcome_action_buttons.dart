@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tunyuke_v2/screens/login_screen.dart';
-import 'package:tunyuke_v2/screens/register_screen.dart';
+import 'package:Tunyuke/screens/login_screen.dart';
+import 'package:Tunyuke/screens/register_screen.dart';
 
 class WelcomeActionButtons extends StatelessWidget {
   final ThemeData theme;

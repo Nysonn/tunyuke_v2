@@ -1,12 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:tunyuke_v2/components/welcome_screen/welcome_action_buttons.dart';
-import 'package:tunyuke_v2/components/welcome_screen/welcome_feature_icons.dart';
-import 'package:tunyuke_v2/components/welcome_screen/welcome_loading_section.dart';
-import 'package:tunyuke_v2/components/welcome_screen/welcome_logo_section.dart';
-import 'package:tunyuke_v2/screens/dashboard.dart';
-import 'package:tunyuke_v2/screens/register_screen.dart';
-import 'package:tunyuke_v2/services/auth_service.dart';
+import 'package:Tunyuke/components/welcome_screen/welcome_action_buttons.dart';
+import 'package:Tunyuke/components/welcome_screen/welcome_feature_icons.dart';
+import 'package:Tunyuke/components/welcome_screen/welcome_loading_section.dart';
+import 'package:Tunyuke/components/welcome_screen/welcome_logo_section.dart';
+import 'package:Tunyuke/screens/dashboard.dart';
+import 'package:Tunyuke/screens/register_screen.dart';
+import 'package:Tunyuke/services/auth_service.dart';
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:tunyuke_v2/screens/login_screen.dart';
-import 'package:tunyuke_v2/services/auth_service.dart'; // Import AuthService
+import 'package:Tunyuke/screens/login_screen.dart';
+import 'package:Tunyuke/services/auth_service.dart'; // Import AuthService
 
 // Import your new components
-import 'package:tunyuke_v2/components/common/app_logo_widget.dart';
-import 'package:tunyuke_v2/components/register_screen/register_header_section.dart';
-import 'package:tunyuke_v2/components/register_screen/register_form_fields.dart';
-import 'package:tunyuke_v2/components/register_screen/register_buttons_section.dart';
+import 'package:Tunyuke/components/common/app_logo_widget.dart';
+import 'package:Tunyuke/components/register_screen/register_header_section.dart';
+import 'package:Tunyuke/components/register_screen/register_form_fields.dart';
+import 'package:Tunyuke/components/register_screen/register_buttons_section.dart';
 
 // Import the new controller
-import 'package:tunyuke_v2/controllers/register_controller.dart';
+import 'package:Tunyuke/controllers/register_controller.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override

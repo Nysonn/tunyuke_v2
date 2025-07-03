@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:tunyuke_v2/screens/dashboard.dart';
-import 'package:tunyuke_v2/screens/register_screen.dart';
-import 'package:tunyuke_v2/services/auth_service.dart';
+import 'package:Tunyuke/screens/dashboard.dart';
+import 'package:Tunyuke/screens/register_screen.dart';
+import 'package:Tunyuke/services/auth_service.dart';
 
 // Import your new components
-import 'package:tunyuke_v2/components/common/app_logo_widget.dart';
-import 'package:tunyuke_v2/components/login_screen/login_header_section.dart';
-import 'package:tunyuke_v2/components/login_screen/login_form_fields.dart';
-import 'package:tunyuke_v2/components/login_screen/forgot_password_link.dart';
-import 'package:tunyuke_v2/components/login_screen/login_buttons_section.dart';
+import 'package:Tunyuke/components/common/app_logo_widget.dart';
+import 'package:Tunyuke/components/login_screen/login_header_section.dart';
+import 'package:Tunyuke/components/login_screen/login_form_fields.dart';
+import 'package:Tunyuke/components/login_screen/forgot_password_link.dart';
+import 'package:Tunyuke/components/login_screen/login_buttons_section.dart';
 
 // Import the new controller
-import 'package:tunyuke_v2/controllers/login_controller.dart';
+import 'package:Tunyuke/controllers/login_controller.dart';
 
 class LoginScreen extends StatefulWidget {
   @override

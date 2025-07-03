@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tunyuke_v2/components/welcome_screen/animated_dot.dart';
+import 'package:Tunyuke/components/welcome_screen/animated_dot.dart';
 
 class WelcomeLoadingSection extends StatelessWidget {
   final Animation<double> pulseAnimation;
