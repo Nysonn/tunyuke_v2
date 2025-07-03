@@ -23,7 +23,6 @@ class _WelcomePageState extends State<WelcomePage>
   late Animation<double> _pulseAnimation;
 
   bool _isCheckingCredentials = true;
-  String _statusMessage = "Checking user credentials...";
 
   final AuthService _authService = AuthService(); // Instantiate AuthService
 
@@ -81,7 +80,6 @@ class _WelcomePageState extends State<WelcomePage>
         // User is not logged in or token expired
         _authService.signOut(); // Ensure SharedPreferences are cleared
         setState(() {
-          _statusMessage = "Please sign in to continue";
           _isCheckingCredentials = false;
         });
       } else {
@@ -99,7 +97,6 @@ class _WelcomePageState extends State<WelcomePage>
         Future.delayed(Duration(milliseconds: 2000), () {
           if (_isCheckingCredentials) {
             setState(() {
-              _statusMessage = "Please sign in to continue";
               _isCheckingCredentials = false;
             });
             _pulseController.stop();
@@ -111,20 +108,14 @@ class _WelcomePageState extends State<WelcomePage>
 
   Future<void> _verifyFirestoreProfile(String uid) async {
     try {
-      setState(() {
-        _statusMessage = "Verifying account...";
-      });
-
+      // Keep the loading state active during verification
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .get();
 
       if (userDoc.exists) {
-        setState(() {
-          _statusMessage = "Welcome back!";
-        });
-
+        // Add a small delay for smooth user experience
         await Future.delayed(Duration(milliseconds: 800));
 
         if (mounted) {
@@ -138,9 +129,6 @@ class _WelcomePageState extends State<WelcomePage>
       } else {
         // Firebase Auth user exists, but no Firestore profile document
         // This implies incomplete registration or deleted profile.
-        setState(() {
-          _statusMessage = "Please complete your registration";
-        });
         await Future.delayed(Duration(milliseconds: 1500));
         if (mounted) {
           Navigator.pushAndRemoveUntil(
@@ -153,7 +141,6 @@ class _WelcomePageState extends State<WelcomePage>
     } catch (e) {
       print("Error verifying Firestore profile: $e");
       setState(() {
-        _statusMessage = "Error loading profile. Please try again.";
         _isCheckingCredentials = false;
       });
       _authService.signOut(); // Clear shared_preferences if an error occurs
@@ -380,58 +367,116 @@ class _WelcomePageState extends State<WelcomePage>
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Enhanced loading indicator with pulse animation
+        // Enhanced loading icon with pulse animation
         ScaleTransition(
           scale: _pulseAnimation,
           child: Container(
-            padding: EdgeInsets.all(20.0),
+            width: 80.0,
+            height: 80.0,
             decoration: BoxDecoration(
               color: Theme.of(context).primaryColor.withOpacity(0.1),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(context).primaryColor.withOpacity(0.2),
-                  blurRadius: 15.0,
-                  offset: Offset(0, 5),
+                  color: Theme.of(context).primaryColor.withOpacity(0.3),
+                  blurRadius: 20.0,
+                  offset: Offset(0, 8),
                 ),
               ],
             ),
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(
-                Theme.of(context).primaryColor,
+            child: Center(
+              child: Icon(
+                Icons.shield_rounded,
+                size: 40.0,
+                color: Theme.of(context).primaryColor,
               ),
-              strokeWidth: 3.0,
             ),
           ),
         ),
+
         SizedBox(height: 32.0),
 
-        // Enhanced status message with fade animation
-        FadeTransition(
-          opacity: _fadeAnimation,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(20.0),
-              border: Border.all(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                width: 1.0,
+        // Enhanced progress bar with container styling
+        Container(
+          width: 200.0,
+          padding: EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            children: [
+              // Progress bar with custom styling
+              Container(
+                height: 6.0,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(3.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      blurRadius: 4.0,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(3.0),
+                  child: AnimatedBuilder(
+                    animation: _pulseController,
+                    builder: (context, child) {
+                      return LinearProgressIndicator(
+                        value: null, // Indeterminate progress
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).primaryColor,
+                        ),
+                        backgroundColor: Colors.transparent,
+                        minHeight: 6.0,
+                      );
+                    },
+                  ),
+                ),
               ),
-            ),
-            child: Text(
-              _statusMessage,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16.0,
-                color: Colors.grey[700],
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.3,
+
+              SizedBox(height: 16.0),
+
+              // Animated dots indicator
+              FadeTransition(
+                opacity: _fadeAnimation,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildAnimatedDot(0),
+                    SizedBox(width: 8.0),
+                    _buildAnimatedDot(1),
+                    SizedBox(width: 8.0),
+                    _buildAnimatedDot(2),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildAnimatedDot(int index) {
+    return AnimatedBuilder(
+      animation: _pulseController,
+      builder: (context, child) {
+        double delay = index * 0.3;
+        double animationValue = (_pulseController.value + delay) % 1.0;
+        double opacity = (0.3 + (0.7 * (1.0 - animationValue.abs()))).clamp(
+          0.0,
+          1.0,
+        );
+
+        return Container(
+          width: 8.0,
+          height: 8.0,
+          decoration: BoxDecoration(
+            color: Theme.of(context).primaryColor.withOpacity(opacity),
+            shape: BoxShape.circle,
+          ),
+        );
+      },
     );
   }
 
