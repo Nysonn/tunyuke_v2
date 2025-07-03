@@ -4,8 +4,8 @@ import 'package:tunyuke_v2/components/welcome_screen/welcome_action_buttons.dart
 import 'package:tunyuke_v2/components/welcome_screen/welcome_feature_icons.dart';
 import 'package:tunyuke_v2/components/welcome_screen/welcome_loading_section.dart';
 import 'package:tunyuke_v2/components/welcome_screen/welcome_logo_section.dart';
-import 'package:tunyuke_v2/dashboard.dart';
-import 'package:tunyuke_v2/register_screen.dart';
+import 'package:tunyuke_v2/screens/dashboard.dart';
+import 'package:tunyuke_v2/screens/register_screen.dart';
 import 'package:tunyuke_v2/services/auth_service.dart';
 
 class WelcomePage extends StatefulWidget {
