@@ -1,0 +1,569 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:tunyuke_v2/dashboard.dart';
+import 'package:tunyuke_v2/login_screen.dart';
+import 'package:tunyuke_v2/register_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class WelcomePage extends StatefulWidget {
+  @override
+  _WelcomePageState createState() => _WelcomePageState();
+}
+
+class _WelcomePageState extends State<WelcomePage>
+    with TickerProviderStateMixin {
+  late AnimationController _fadeController;
+  late AnimationController _slideController;
+  late AnimationController _pulseController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _pulseAnimation;
+
+  bool _isCheckingCredentials = true;
+  String _statusMessage = "Checking user credentials...";
+
+  @override
+  void initState() {
+    super.initState();
+
+    _fadeController = AnimationController(
+      duration: Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _slideController = AnimationController(
+      duration: Duration(milliseconds: 1200),
+      vsync: this,
+    );
+
+    _pulseController = AnimationController(
+      duration: Duration(milliseconds: 1000),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    );
+
+    _slideAnimation = Tween<Offset>(begin: Offset(0, 0.3), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.elasticOut),
+        );
+
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    // Start animations
+    _fadeController.forward();
+    Future.delayed(Duration(milliseconds: 300), () {
+      _slideController.forward();
+    });
+
+    // Start pulse animation for loading
+    _pulseController.repeat(reverse: true);
+
+    // Check user credentials after animations start
+    Future.delayed(Duration(milliseconds: 800), () {
+      checkUserCredentials();
+    });
+  }
+
+  void checkUserCredentials() async {
+    try {
+      setState(() {
+        _statusMessage = "Checking login status...";
+      });
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+      if (!isLoggedIn) {
+        setState(() {
+          _statusMessage = "Please sign in to continue";
+          _isCheckingCredentials = false;
+        });
+        _pulseController.stop();
+        return;
+      }
+
+      setState(() {
+        _statusMessage = "Verifying account...";
+      });
+
+      FirebaseAuth auth = FirebaseAuth.instance;
+      User? user = auth.currentUser;
+
+      if (user != null) {
+        setState(() {
+          _statusMessage = "Loading your profile...";
+        });
+
+        String uid = auth.currentUser?.uid ?? '';
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .get();
+
+        if (userDoc.exists) {
+          await prefs.setString('userId', user.uid);
+          await prefs.setString('username', userDoc.data()?['name'] ?? 'Guest');
+          await prefs.setString('userPhone', userDoc.data()?['phone'] ?? '');
+
+          setState(() {
+            _statusMessage = "Welcome back!";
+          });
+
+          // Small delay to show welcome message
+          await Future.delayed(Duration(milliseconds: 800));
+
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => DashboardPage()),
+            (route) => false,
+          );
+        } else {
+          setState(() {
+            _statusMessage = "Please complete your registration";
+          });
+
+          await Future.delayed(Duration(milliseconds: 1500));
+
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => RegisterScreen()),
+            (route) => false,
+          );
+        }
+      } else {
+        setState(() {
+          _statusMessage = "Please sign in to continue";
+          _isCheckingCredentials = false;
+        });
+        _pulseController.stop();
+      }
+    } catch (e) {
+      setState(() {
+        _statusMessage = "Connection error. Please try again.";
+        _isCheckingCredentials = false;
+      });
+      _pulseController.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _fadeController.dispose();
+    _slideController.dispose();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.primaryColor.withOpacity(0.05),
+              Colors.white,
+              theme.primaryColor.withOpacity(0.02),
+            ],
+            stops: [0.0, 0.5, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Container(
+              height: screenHeight - MediaQuery.of(context).padding.top,
+              child: Column(
+                children: [
+                  // Top spacer
+                  SizedBox(height: screenHeight * 0.08),
+
+                  // Logo and branding section
+                  Expanded(
+                    flex: 3,
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Enhanced logo with shadow and animation
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: theme.primaryColor.withOpacity(0.2),
+                                  blurRadius: 20.0,
+                                  offset: Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: Hero(
+                              tag: 'app_logo',
+                              child: ClipOval(
+                                child: Container(
+                                  height: 140.0,
+                                  width: 140.0,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Image.network(
+                                    'https://res.cloudinary.com/df3lhzzy7/image/upload/v1749768253/unnamed_p6zzod.jpg',
+                                    height: 140.0,
+                                    width: 140.0,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Container(
+                                        height: 140.0,
+                                        width: 140.0,
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            value:
+                                                loadingProgress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                          .cumulativeBytesLoaded /
+                                                      loadingProgress
+                                                          .expectedTotalBytes!
+                                                : null,
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  Theme.of(
+                                                    context,
+                                                  ).primaryColor,
+                                                ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        height: 140.0,
+                                        width: 140.0,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[200],
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.image_not_supported,
+                                          size: 60.0,
+                                          color: Colors.grey[400],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(height: 30.0),
+
+                          // Enhanced app name with gradient text
+                          ShaderMask(
+                            shaderCallback: (bounds) => LinearGradient(
+                              colors: [
+                                theme.primaryColor,
+                                theme.primaryColor.withOpacity(0.8),
+                              ],
+                            ).createShader(bounds),
+                            child: Text(
+                              "Tunyuke",
+                              style: TextStyle(
+                                fontSize: 42.0,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ),
+
+                          SizedBox(height: 12.0),
+
+                          // Enhanced subtitle
+                          Text(
+                            "Welcome to your journey",
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w400,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Action buttons or loading section with enhanced styling
+                  Expanded(
+                    flex: 2,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: _isCheckingCredentials
+                          ? _buildEnhancedLoadingSection()
+                          : _buildEnhancedActionButtons(theme),
+                    ),
+                  ),
+
+                  // Enhanced bottom section
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 40.0),
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _buildFeatureIcon(
+                                Icons.security_rounded,
+                                "Secure",
+                              ),
+                              SizedBox(width: 40.0),
+                              _buildFeatureIcon(Icons.speed_rounded, "Fast"),
+                              SizedBox(width: 40.0),
+                              _buildFeatureIcon(
+                                Icons.favorite_rounded,
+                                "Reliable",
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 24.0),
+                          Text(
+                            _isCheckingCredentials
+                                ? "Securing your experience"
+                                : "Join thousands of satisfied users",
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 12.0,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEnhancedLoadingSection() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Enhanced loading indicator with pulse animation
+        ScaleTransition(
+          scale: _pulseAnimation,
+          child: Container(
+            padding: EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Theme.of(context).primaryColor.withOpacity(0.2),
+                  blurRadius: 15.0,
+                  offset: Offset(0, 5),
+                ),
+              ],
+            ),
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).primaryColor,
+              ),
+              strokeWidth: 3.0,
+            ),
+          ),
+        ),
+        SizedBox(height: 32.0),
+
+        // Enhanced status message with fade animation
+        FadeTransition(
+          opacity: _fadeAnimation,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(20.0),
+              border: Border.all(
+                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                width: 1.0,
+              ),
+            ),
+            child: Text(
+              _statusMessage,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16.0,
+                color: Colors.grey[700],
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEnhancedActionButtons(ThemeData theme) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 40.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Enhanced Get Started button
+          Container(
+            width: double.infinity,
+            height: 56.0,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28.0),
+              gradient: LinearGradient(
+                colors: [
+                  theme.primaryColor,
+                  theme.primaryColor.withOpacity(0.8),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: theme.primaryColor.withOpacity(0.3),
+                  blurRadius: 15.0,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: ElevatedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => RegisterScreen()),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28.0),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Get Started",
+                    style: TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  SizedBox(width: 8.0),
+                  Icon(
+                    Icons.arrow_forward_rounded,
+                    color: Colors.white,
+                    size: 20.0,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          SizedBox(height: 20.0),
+
+          // Enhanced divider with "or" text
+          Row(
+            children: [
+              Expanded(child: Container(height: 1.0, color: Colors.grey[300])),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: Text(
+                  "or",
+                  style: TextStyle(
+                    color: Colors.grey[500],
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Expanded(child: Container(height: 1.0, color: Colors.grey[300])),
+            ],
+          ),
+
+          SizedBox(height: 20.0),
+
+          // Enhanced Sign In button with outline style
+          Container(
+            width: double.infinity,
+            height: 56.0,
+            child: OutlinedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => LoginScreen()),
+              ),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: theme.primaryColor, width: 2.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28.0),
+                ),
+              ),
+              child: Text(
+                "Sign In",
+                style: TextStyle(
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.w600,
+                  color: theme.primaryColor,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeatureIcon(IconData icon, String label) {
+    return Column(
+      children: [
+        Container(
+          padding: EdgeInsets.all(12.0),
+          decoration: BoxDecoration(
+            color: Theme.of(context).primaryColor.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: Theme.of(context).primaryColor, size: 20.0),
+        ),
+        SizedBox(height: 8.0),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 12.0,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "411658910745",
+    "project_id": "tunyuke",
+    "storage_bucket": "tunyuke.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:411658910745:android:c87453f76fe643ed38be88",
+        "android_client_info": {
+          "package_name": "com.example.tunyuke_v2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "411658910745-u3p9cca15bsgu7855suroid1v2735hfe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAIeEou0Szh_wVKcfa1vQ-Ti-w62VlurzI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "411658910745-u3p9cca15bsgu7855suroid1v2735hfe.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
