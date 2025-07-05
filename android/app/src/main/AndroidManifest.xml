@@ -1,13 +1,20 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.tunyuke_v2">  <!-- make sure this matches your applicationId -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
 
     <!-- Grant Internet access -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Grant Location access -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
     <application
         android:label="Tunyuke"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+      <meta-data
+        android:name="com.google.android.geo.API_KEY"
+        android:value="AIzaSyDCNSinfE9P9OqTphs_V84Jl9U8gnYXgMc"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

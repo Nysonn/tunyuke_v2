@@ -6,26 +6,17 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   final ThemeData theme;
 
   const DashboardAppBar({
-    Key? key,
+    super.key,
     required this.greeting,
     required this.userName,
     required this.theme,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.transparent,
+      backgroundColor: theme.primaryColor,
       elevation: 0,
-      flexibleSpace: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.topRight,
-            colors: [theme.primaryColor.withOpacity(0.8), theme.primaryColor],
-          ),
-        ),
-      ),
       leading: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Container(
@@ -59,7 +50,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                   style: TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white,
                   ),
                 ),
                 TextSpan(
@@ -71,7 +62,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
                     letterSpacing: 0.8,
                     shadows: [
                       Shadow(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black,
                         offset: Offset(1, 1),
                         blurRadius: 2,
                       ),
@@ -84,10 +75,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           Text(
             "Ready for your journey?",
-            style: TextStyle(
-              fontSize: 12.0,
-              color: Colors.white.withOpacity(0.9),
-            ),
+            style: TextStyle(fontSize: 12.0, color: Colors.white),
           ),
         ],
       ),

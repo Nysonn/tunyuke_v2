@@ -1,0 +1,452 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.example.tunyuke_v2"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="23"
+9        android:targetSdkVersion="35" />
+10    <!--
+11         The INTERNET permission is required for development. Specifically,
+12         the Flutter tool needs it to communicate with the running application
+13         to allow setting breakpoints, to provide hot reload, etc.
+14    -->
+15    <uses-permission android:name="android.permission.INTERNET" />
+15-->/home/nyson/tunyuke_v2/android/app/src/main/AndroidManifest.xml:5:5-66
+15-->/home/nyson/tunyuke_v2/android/app/src/main/AndroidManifest.xml:5:22-64
+16    <!-- Grant Location access -->
+17    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+17-->/home/nyson/tunyuke_v2/android/app/src/main/AndroidManifest.xml:8:5-78
+17-->/home/nyson/tunyuke_v2/android/app/src/main/AndroidManifest.xml:8:22-76
+18    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> <!-- Required for PROCESS_TEXT plugin visibility -->
+18-->/home/nyson/tunyuke_v2/android/app/src/main/AndroidManifest.xml:9:5-80
+18-->/home/nyson/tunyuke_v2/android/app/src/main/AndroidManifest.xml:9:22-78
+19    <queries>
+19-->/home/nyson/tunyuke_v2/android/app/src/main/AndroidManifest.xml:43:5-48:15
+20        <intent>
+20-->/home/nyson/tunyuke_v2/android/app/src/main/AndroidManifest.xml:44:9-47:18
+21            <action android:name="android.intent.action.PROCESS_TEXT" />
+21-->/home/nyson/tunyuke_v2/android/app/src/main/AndroidManifest.xml:45:13-72
+21-->/home/nyson/tunyuke_v2/android/app/src/main/AndroidManifest.xml:45:21-70
+22
+23            <data android:mimeType="text/plain" />
+23-->/home/nyson/tunyuke_v2/android/app/src/main/AndroidManifest.xml:46:13-50
+23-->/home/nyson/tunyuke_v2/android/app/src/main/AndroidManifest.xml:46:19-48
+24        </intent>
+25        <!-- Needs to be explicitly declared on Android R+ -->
+26        <package android:name="com.google.android.apps.maps" />
+26-->[com.google.android.gms:play-services-maps:18.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/a84e4fecd9e15bffa3ba4bde7a5dd098/transformed/jetified-play-services-maps-18.2.0/AndroidManifest.xml:33:9-64
+26-->[com.google.android.gms:play-services-maps:18.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/a84e4fecd9e15bffa3ba4bde7a5dd098/transformed/jetified-play-services-maps-18.2.0/AndroidManifest.xml:33:18-61
+27    </queries>
+28
+29    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+29-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:26:5-79
+29-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:26:22-76
+30
+31    <uses-feature
+31-->[com.google.android.gms:play-services-maps:18.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/a84e4fecd9e15bffa3ba4bde7a5dd098/transformed/jetified-play-services-maps-18.2.0/AndroidManifest.xml:26:5-28:35
+32        android:glEsVersion="0x00020000"
+32-->[com.google.android.gms:play-services-maps:18.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/a84e4fecd9e15bffa3ba4bde7a5dd098/transformed/jetified-play-services-maps-18.2.0/AndroidManifest.xml:27:9-41
+33        android:required="true" />
+33-->[com.google.android.gms:play-services-maps:18.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/a84e4fecd9e15bffa3ba4bde7a5dd098/transformed/jetified-play-services-maps-18.2.0/AndroidManifest.xml:28:9-32
+34
+35    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+35-->[com.google.android.recaptcha:recaptcha:18.6.1] /home/nyson/.gradle/caches/8.10.2/transforms/0f0cfa24bef95d70b22580e198f57588/transformed/jetified-recaptcha-18.6.1/AndroidManifest.xml:9:5-98
+35-->[com.google.android.recaptcha:recaptcha:18.6.1] /home/nyson/.gradle/caches/8.10.2/transforms/0f0cfa24bef95d70b22580e198f57588/transformed/jetified-recaptcha-18.6.1/AndroidManifest.xml:9:22-95
+36
+37    <permission
+37-->[androidx.core:core:1.13.1] /home/nyson/.gradle/caches/8.10.2/transforms/0b7740b10500e023bbd402614d9749eb/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
+38        android:name="com.example.tunyuke_v2.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+38-->[androidx.core:core:1.13.1] /home/nyson/.gradle/caches/8.10.2/transforms/0b7740b10500e023bbd402614d9749eb/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
+39        android:protectionLevel="signature" />
+39-->[androidx.core:core:1.13.1] /home/nyson/.gradle/caches/8.10.2/transforms/0b7740b10500e023bbd402614d9749eb/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
+40
+41    <uses-permission android:name="com.example.tunyuke_v2.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+41-->[androidx.core:core:1.13.1] /home/nyson/.gradle/caches/8.10.2/transforms/0b7740b10500e023bbd402614d9749eb/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
+41-->[androidx.core:core:1.13.1] /home/nyson/.gradle/caches/8.10.2/transforms/0b7740b10500e023bbd402614d9749eb/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
+42
+43    <application
+44        android:name="android.app.Application"
+45        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+45-->[androidx.core:core:1.13.1] /home/nyson/.gradle/caches/8.10.2/transforms/0b7740b10500e023bbd402614d9749eb/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
+46        android:debuggable="true"
+47        android:extractNativeLibs="false"
+48        android:icon="@mipmap/ic_launcher"
+49        android:label="Tunyuke" >
+50        <meta-data
+51            android:name="com.google.android.geo.API_KEY"
+52            android:value="AIzaSyDCNSinfE9P9OqTphs_V84Jl9U8gnYXgMc" />
+53
+54        <activity
+55            android:name="com.example.tunyuke_v2.MainActivity"
+56            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+57            android:exported="true"
+58            android:hardwareAccelerated="true"
+59            android:launchMode="singleTop"
+60            android:taskAffinity=""
+61            android:theme="@style/LaunchTheme"
+62            android:windowSoftInputMode="adjustResize" >
+63            <meta-data
+64                android:name="io.flutter.embedding.android.NormalTheme"
+65                android:resource="@style/NormalTheme" />
+66
+67            <intent-filter>
+68                <action android:name="android.intent.action.MAIN" />
+69
+70                <category android:name="android.intent.category.LAUNCHER" />
+71            </intent-filter>
+72        </activity>
+73        <!-- Flutter embedding metadata -->
+74        <meta-data
+75            android:name="flutterEmbedding"
+76            android:value="2" />
+77
+78        <service
+78-->[:geolocator_android] /home/nyson/.pub-cache/hosted/pub.dev/geolocator_android-4.6.2/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:8:9-12:56
+79            android:name="com.baseflow.geolocator.GeolocatorLocationService"
+79-->[:geolocator_android] /home/nyson/.pub-cache/hosted/pub.dev/geolocator_android-4.6.2/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:9:13-77
+80            android:enabled="true"
+80-->[:geolocator_android] /home/nyson/.pub-cache/hosted/pub.dev/geolocator_android-4.6.2/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:10:13-35
+81            android:exported="false"
+81-->[:geolocator_android] /home/nyson/.pub-cache/hosted/pub.dev/geolocator_android-4.6.2/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:11:13-37
+82            android:foregroundServiceType="location" />
+82-->[:geolocator_android] /home/nyson/.pub-cache/hosted/pub.dev/geolocator_android-4.6.2/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:12:13-53
+83
+84        <activity
+84-->[:url_launcher_android] /home/nyson/.pub-cache/hosted/pub.dev/url_launcher_android-6.3.16/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:8:9-11:74
+85            android:name="io.flutter.plugins.urllauncher.WebViewActivity"
+85-->[:url_launcher_android] /home/nyson/.pub-cache/hosted/pub.dev/url_launcher_android-6.3.16/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:9:13-74
+86            android:exported="false"
+86-->[:url_launcher_android] /home/nyson/.pub-cache/hosted/pub.dev/url_launcher_android-6.3.16/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:10:13-37
+87            android:theme="@android:style/Theme.NoTitleBar.Fullscreen" />
+87-->[:url_launcher_android] /home/nyson/.pub-cache/hosted/pub.dev/url_launcher_android-6.3.16/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:11:13-71
+88
+89        <service
+89-->[:cloud_firestore] /home/nyson/.pub-cache/hosted/pub.dev/cloud_firestore-5.6.9/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:8:9-12:19
+90            android:name="com.google.firebase.components.ComponentDiscoveryService"
+90-->[:cloud_firestore] /home/nyson/.pub-cache/hosted/pub.dev/cloud_firestore-5.6.9/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:8:18-89
+91            android:directBootAware="true"
+91-->[com.google.firebase:firebase-common:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/8d7fb6eb7b755e5a8603a3d138b8aa46/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:32:13-43
+92            android:exported="false" >
+92-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:68:13-37
+93            <meta-data
+93-->[:cloud_firestore] /home/nyson/.pub-cache/hosted/pub.dev/cloud_firestore-5.6.9/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:9:13-11:85
+94                android:name="com.google.firebase.components:io.flutter.plugins.firebase.firestore.FlutterFirebaseFirestoreRegistrar"
+94-->[:cloud_firestore] /home/nyson/.pub-cache/hosted/pub.dev/cloud_firestore-5.6.9/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:10:17-134
+95                android:value="com.google.firebase.components.ComponentRegistrar" />
+95-->[:cloud_firestore] /home/nyson/.pub-cache/hosted/pub.dev/cloud_firestore-5.6.9/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:11:17-82
+96            <meta-data
+96-->[:firebase_auth] /home/nyson/.pub-cache/hosted/pub.dev/firebase_auth-5.6.0/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:9:13-11:85
+97                android:name="com.google.firebase.components:io.flutter.plugins.firebase.auth.FlutterFirebaseAuthRegistrar"
+97-->[:firebase_auth] /home/nyson/.pub-cache/hosted/pub.dev/firebase_auth-5.6.0/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:10:17-124
+98                android:value="com.google.firebase.components.ComponentRegistrar" />
+98-->[:firebase_auth] /home/nyson/.pub-cache/hosted/pub.dev/firebase_auth-5.6.0/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:11:17-82
+99            <meta-data
+99-->[:firebase_storage] /home/nyson/.pub-cache/hosted/pub.dev/firebase_storage-12.4.7/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:9:13-11:85
+100                android:name="com.google.firebase.components:io.flutter.plugins.firebase.storage.FlutterFirebaseAppRegistrar"
+100-->[:firebase_storage] /home/nyson/.pub-cache/hosted/pub.dev/firebase_storage-12.4.7/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:10:17-126
+101                android:value="com.google.firebase.components.ComponentRegistrar" />
+101-->[:firebase_storage] /home/nyson/.pub-cache/hosted/pub.dev/firebase_storage-12.4.7/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:11:17-82
+102            <meta-data
+102-->[:firebase_core] /home/nyson/.pub-cache/hosted/pub.dev/firebase_core-3.14.0/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:9:13-11:85
+103                android:name="com.google.firebase.components:io.flutter.plugins.firebase.core.FlutterFirebaseCoreRegistrar"
+103-->[:firebase_core] /home/nyson/.pub-cache/hosted/pub.dev/firebase_core-3.14.0/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:10:17-124
+104                android:value="com.google.firebase.components.ComponentRegistrar" />
+104-->[:firebase_core] /home/nyson/.pub-cache/hosted/pub.dev/firebase_core-3.14.0/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml:11:17-82
+105            <meta-data
+105-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:69:13-71:85
+106                android:name="com.google.firebase.components:com.google.firebase.auth.FirebaseAuthRegistrar"
+106-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:70:17-109
+107                android:value="com.google.firebase.components.ComponentRegistrar" />
+107-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:71:17-82
+108            <meta-data
+108-->[com.google.firebase:firebase-firestore:25.1.3] /home/nyson/.gradle/caches/8.10.2/transforms/5420541db73bb96ebb14010f3e301e92/transformed/jetified-firebase-firestore-25.1.3/AndroidManifest.xml:17:13-19:85
+109                android:name="com.google.firebase.components:com.google.firebase.firestore.FirebaseFirestoreKtxRegistrar"
+109-->[com.google.firebase:firebase-firestore:25.1.3] /home/nyson/.gradle/caches/8.10.2/transforms/5420541db73bb96ebb14010f3e301e92/transformed/jetified-firebase-firestore-25.1.3/AndroidManifest.xml:18:17-122
+110                android:value="com.google.firebase.components.ComponentRegistrar" />
+110-->[com.google.firebase:firebase-firestore:25.1.3] /home/nyson/.gradle/caches/8.10.2/transforms/5420541db73bb96ebb14010f3e301e92/transformed/jetified-firebase-firestore-25.1.3/AndroidManifest.xml:19:17-82
+111            <meta-data
+111-->[com.google.firebase:firebase-firestore:25.1.3] /home/nyson/.gradle/caches/8.10.2/transforms/5420541db73bb96ebb14010f3e301e92/transformed/jetified-firebase-firestore-25.1.3/AndroidManifest.xml:20:13-22:85
+112                android:name="com.google.firebase.components:com.google.firebase.firestore.FirestoreRegistrar"
+112-->[com.google.firebase:firebase-firestore:25.1.3] /home/nyson/.gradle/caches/8.10.2/transforms/5420541db73bb96ebb14010f3e301e92/transformed/jetified-firebase-firestore-25.1.3/AndroidManifest.xml:21:17-111
+113                android:value="com.google.firebase.components.ComponentRegistrar" />
+113-->[com.google.firebase:firebase-firestore:25.1.3] /home/nyson/.gradle/caches/8.10.2/transforms/5420541db73bb96ebb14010f3e301e92/transformed/jetified-firebase-firestore-25.1.3/AndroidManifest.xml:22:17-82
+114            <meta-data
+114-->[com.google.firebase:firebase-storage:21.0.1] /home/nyson/.gradle/caches/8.10.2/transforms/7132f4c84726866ff132678e5832b295/transformed/jetified-firebase-storage-21.0.1/AndroidManifest.xml:30:13-32:85
+115                android:name="com.google.firebase.components:com.google.firebase.storage.FirebaseStorageKtxRegistrar"
+115-->[com.google.firebase:firebase-storage:21.0.1] /home/nyson/.gradle/caches/8.10.2/transforms/7132f4c84726866ff132678e5832b295/transformed/jetified-firebase-storage-21.0.1/AndroidManifest.xml:31:17-118
+116                android:value="com.google.firebase.components.ComponentRegistrar" />
+116-->[com.google.firebase:firebase-storage:21.0.1] /home/nyson/.gradle/caches/8.10.2/transforms/7132f4c84726866ff132678e5832b295/transformed/jetified-firebase-storage-21.0.1/AndroidManifest.xml:32:17-82
+117            <meta-data
+117-->[com.google.firebase:firebase-storage:21.0.1] /home/nyson/.gradle/caches/8.10.2/transforms/7132f4c84726866ff132678e5832b295/transformed/jetified-firebase-storage-21.0.1/AndroidManifest.xml:33:13-35:85
+118                android:name="com.google.firebase.components:com.google.firebase.storage.StorageRegistrar"
+118-->[com.google.firebase:firebase-storage:21.0.1] /home/nyson/.gradle/caches/8.10.2/transforms/7132f4c84726866ff132678e5832b295/transformed/jetified-firebase-storage-21.0.1/AndroidManifest.xml:34:17-107
+119                android:value="com.google.firebase.components.ComponentRegistrar" />
+119-->[com.google.firebase:firebase-storage:21.0.1] /home/nyson/.gradle/caches/8.10.2/transforms/7132f4c84726866ff132678e5832b295/transformed/jetified-firebase-storage-21.0.1/AndroidManifest.xml:35:17-82
+120            <meta-data
+120-->[com.google.firebase:firebase-appcheck:18.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/f62b40b35b202e77bd56a980957ef0c9/transformed/jetified-firebase-appcheck-18.0.0/AndroidManifest.xml:25:13-27:85
+121                android:name="com.google.firebase.components:com.google.firebase.appcheck.FirebaseAppCheckKtxRegistrar"
+121-->[com.google.firebase:firebase-appcheck:18.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/f62b40b35b202e77bd56a980957ef0c9/transformed/jetified-firebase-appcheck-18.0.0/AndroidManifest.xml:26:17-120
+122                android:value="com.google.firebase.components.ComponentRegistrar" />
+122-->[com.google.firebase:firebase-appcheck:18.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/f62b40b35b202e77bd56a980957ef0c9/transformed/jetified-firebase-appcheck-18.0.0/AndroidManifest.xml:27:17-82
+123            <meta-data
+123-->[com.google.firebase:firebase-appcheck:18.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/f62b40b35b202e77bd56a980957ef0c9/transformed/jetified-firebase-appcheck-18.0.0/AndroidManifest.xml:28:13-30:85
+124                android:name="com.google.firebase.components:com.google.firebase.appcheck.FirebaseAppCheckRegistrar"
+124-->[com.google.firebase:firebase-appcheck:18.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/f62b40b35b202e77bd56a980957ef0c9/transformed/jetified-firebase-appcheck-18.0.0/AndroidManifest.xml:29:17-117
+125                android:value="com.google.firebase.components.ComponentRegistrar" />
+125-->[com.google.firebase:firebase-appcheck:18.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/f62b40b35b202e77bd56a980957ef0c9/transformed/jetified-firebase-appcheck-18.0.0/AndroidManifest.xml:30:17-82
+126            <meta-data
+126-->[com.google.firebase:firebase-common-ktx:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/b6673d169bc7c093408c4de974f04bdd/transformed/jetified-firebase-common-ktx-21.0.0/AndroidManifest.xml:12:13-14:85
+127                android:name="com.google.firebase.components:com.google.firebase.ktx.FirebaseCommonLegacyRegistrar"
+127-->[com.google.firebase:firebase-common-ktx:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/b6673d169bc7c093408c4de974f04bdd/transformed/jetified-firebase-common-ktx-21.0.0/AndroidManifest.xml:13:17-116
+128                android:value="com.google.firebase.components.ComponentRegistrar" />
+128-->[com.google.firebase:firebase-common-ktx:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/b6673d169bc7c093408c4de974f04bdd/transformed/jetified-firebase-common-ktx-21.0.0/AndroidManifest.xml:14:17-82
+129            <meta-data
+129-->[com.google.firebase:firebase-common:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/8d7fb6eb7b755e5a8603a3d138b8aa46/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:35:13-37:85
+130                android:name="com.google.firebase.components:com.google.firebase.FirebaseCommonKtxRegistrar"
+130-->[com.google.firebase:firebase-common:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/8d7fb6eb7b755e5a8603a3d138b8aa46/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:36:17-109
+131                android:value="com.google.firebase.components.ComponentRegistrar" />
+131-->[com.google.firebase:firebase-common:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/8d7fb6eb7b755e5a8603a3d138b8aa46/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:37:17-82
+132        </service>
+133
+134        <activity
+134-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:29:9-46:20
+135            android:name="com.google.firebase.auth.internal.GenericIdpActivity"
+135-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:30:13-80
+136            android:excludeFromRecents="true"
+136-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:31:13-46
+137            android:exported="true"
+137-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:32:13-36
+138            android:launchMode="singleTask"
+138-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:33:13-44
+139            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+139-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:34:13-72
+140            <intent-filter>
+140-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:35:13-45:29
+141                <action android:name="android.intent.action.VIEW" />
+141-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:36:17-69
+141-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:36:25-66
+142
+143                <category android:name="android.intent.category.DEFAULT" />
+143-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:38:17-76
+143-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:38:27-73
+144                <category android:name="android.intent.category.BROWSABLE" />
+144-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:39:17-78
+144-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:39:27-75
+145
+146                <data
+146-->/home/nyson/tunyuke_v2/android/app/src/main/AndroidManifest.xml:46:13-50
+147                    android:host="firebase.auth"
+148                    android:path="/"
+149                    android:scheme="genericidp" />
+150            </intent-filter>
+151        </activity>
+152        <activity
+152-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:47:9-64:20
+153            android:name="com.google.firebase.auth.internal.RecaptchaActivity"
+153-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:48:13-79
+154            android:excludeFromRecents="true"
+154-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:49:13-46
+155            android:exported="true"
+155-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:50:13-36
+156            android:launchMode="singleTask"
+156-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:51:13-44
+157            android:theme="@android:style/Theme.Translucent.NoTitleBar" >
+157-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:52:13-72
+158            <intent-filter>
+158-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:53:13-63:29
+159                <action android:name="android.intent.action.VIEW" />
+159-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:36:17-69
+159-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:36:25-66
+160
+161                <category android:name="android.intent.category.DEFAULT" />
+161-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:38:17-76
+161-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:38:27-73
+162                <category android:name="android.intent.category.BROWSABLE" />
+162-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:39:17-78
+162-->[com.google.firebase:firebase-auth:23.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/f1268ef6a028fa85fa4519cc9d2a1969/transformed/jetified-firebase-auth-23.2.0/AndroidManifest.xml:39:27-75
+163
+164                <data
+164-->/home/nyson/tunyuke_v2/android/app/src/main/AndroidManifest.xml:46:13-50
+165                    android:host="firebase.auth"
+166                    android:path="/"
+167                    android:scheme="recaptcha" />
+168            </intent-filter>
+169        </activity>
+170
+171        <uses-library
+171-->[androidx.window:window:1.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/d7a4bce2148beb9f653320a397363980/transformed/jetified-window-1.2.0/AndroidManifest.xml:23:9-25:40
+172            android:name="androidx.window.extensions"
+172-->[androidx.window:window:1.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/d7a4bce2148beb9f653320a397363980/transformed/jetified-window-1.2.0/AndroidManifest.xml:24:13-54
+173            android:required="false" />
+173-->[androidx.window:window:1.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/d7a4bce2148beb9f653320a397363980/transformed/jetified-window-1.2.0/AndroidManifest.xml:25:13-37
+174        <uses-library
+174-->[androidx.window:window:1.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/d7a4bce2148beb9f653320a397363980/transformed/jetified-window-1.2.0/AndroidManifest.xml:26:9-28:40
+175            android:name="androidx.window.sidecar"
+175-->[androidx.window:window:1.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/d7a4bce2148beb9f653320a397363980/transformed/jetified-window-1.2.0/AndroidManifest.xml:27:13-51
+176            android:required="false" /> <!-- Needs to be explicitly declared on P+ -->
+176-->[androidx.window:window:1.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/d7a4bce2148beb9f653320a397363980/transformed/jetified-window-1.2.0/AndroidManifest.xml:28:13-37
+177        <uses-library
+177-->[com.google.android.gms:play-services-maps:18.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/a84e4fecd9e15bffa3ba4bde7a5dd098/transformed/jetified-play-services-maps-18.2.0/AndroidManifest.xml:39:9-41:40
+178            android:name="org.apache.http.legacy"
+178-->[com.google.android.gms:play-services-maps:18.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/a84e4fecd9e15bffa3ba4bde7a5dd098/transformed/jetified-play-services-maps-18.2.0/AndroidManifest.xml:40:13-50
+179            android:required="false" />
+179-->[com.google.android.gms:play-services-maps:18.2.0] /home/nyson/.gradle/caches/8.10.2/transforms/a84e4fecd9e15bffa3ba4bde7a5dd098/transformed/jetified-play-services-maps-18.2.0/AndroidManifest.xml:41:13-37
+180
+181        <service
+181-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /home/nyson/.gradle/caches/8.10.2/transforms/f9a70949af410ed1871965b598b63418/transformed/jetified-credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:24:9-32:19
+182            android:name="androidx.credentials.playservices.CredentialProviderMetadataHolder"
+182-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /home/nyson/.gradle/caches/8.10.2/transforms/f9a70949af410ed1871965b598b63418/transformed/jetified-credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:25:13-94
+183            android:enabled="true"
+183-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /home/nyson/.gradle/caches/8.10.2/transforms/f9a70949af410ed1871965b598b63418/transformed/jetified-credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:26:13-35
+184            android:exported="false" >
+184-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /home/nyson/.gradle/caches/8.10.2/transforms/f9a70949af410ed1871965b598b63418/transformed/jetified-credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:27:13-37
+185            <meta-data
+185-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /home/nyson/.gradle/caches/8.10.2/transforms/f9a70949af410ed1871965b598b63418/transformed/jetified-credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:29:13-31:104
+186                android:name="androidx.credentials.CREDENTIAL_PROVIDER_KEY"
+186-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /home/nyson/.gradle/caches/8.10.2/transforms/f9a70949af410ed1871965b598b63418/transformed/jetified-credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:30:17-76
+187                android:value="androidx.credentials.playservices.CredentialProviderPlayServicesImpl" />
+187-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /home/nyson/.gradle/caches/8.10.2/transforms/f9a70949af410ed1871965b598b63418/transformed/jetified-credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:31:17-101
+188        </service>
+189
+190        <activity
+190-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /home/nyson/.gradle/caches/8.10.2/transforms/f9a70949af410ed1871965b598b63418/transformed/jetified-credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:34:9-41:20
+191            android:name="androidx.credentials.playservices.HiddenActivity"
+191-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /home/nyson/.gradle/caches/8.10.2/transforms/f9a70949af410ed1871965b598b63418/transformed/jetified-credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:35:13-76
+192            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+192-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /home/nyson/.gradle/caches/8.10.2/transforms/f9a70949af410ed1871965b598b63418/transformed/jetified-credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:36:13-87
+193            android:enabled="true"
+193-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /home/nyson/.gradle/caches/8.10.2/transforms/f9a70949af410ed1871965b598b63418/transformed/jetified-credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:37:13-35
+194            android:exported="false"
+194-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /home/nyson/.gradle/caches/8.10.2/transforms/f9a70949af410ed1871965b598b63418/transformed/jetified-credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:38:13-37
+195            android:fitsSystemWindows="true"
+195-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /home/nyson/.gradle/caches/8.10.2/transforms/f9a70949af410ed1871965b598b63418/transformed/jetified-credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:39:13-45
+196            android:theme="@style/Theme.Hidden" >
+196-->[androidx.credentials:credentials-play-services-auth:1.2.0-rc01] /home/nyson/.gradle/caches/8.10.2/transforms/f9a70949af410ed1871965b598b63418/transformed/jetified-credentials-play-services-auth-1.2.0-rc01/AndroidManifest.xml:40:13-48
+197        </activity>
+198        <activity
+198-->[com.google.android.gms:play-services-auth:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/185c3fae7932a5064493eeedf7ffde72/transformed/jetified-play-services-auth-21.0.0/AndroidManifest.xml:23:9-27:75
+199            android:name="com.google.android.gms.auth.api.signin.internal.SignInHubActivity"
+199-->[com.google.android.gms:play-services-auth:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/185c3fae7932a5064493eeedf7ffde72/transformed/jetified-play-services-auth-21.0.0/AndroidManifest.xml:24:13-93
+200            android:excludeFromRecents="true"
+200-->[com.google.android.gms:play-services-auth:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/185c3fae7932a5064493eeedf7ffde72/transformed/jetified-play-services-auth-21.0.0/AndroidManifest.xml:25:13-46
+201            android:exported="false"
+201-->[com.google.android.gms:play-services-auth:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/185c3fae7932a5064493eeedf7ffde72/transformed/jetified-play-services-auth-21.0.0/AndroidManifest.xml:26:13-37
+202            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+202-->[com.google.android.gms:play-services-auth:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/185c3fae7932a5064493eeedf7ffde72/transformed/jetified-play-services-auth-21.0.0/AndroidManifest.xml:27:13-72
+203        <!--
+204            Service handling Google Sign-In user revocation. For apps that do not integrate with
+205            Google Sign-In, this service will never be started.
+206        -->
+207        <service
+207-->[com.google.android.gms:play-services-auth:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/185c3fae7932a5064493eeedf7ffde72/transformed/jetified-play-services-auth-21.0.0/AndroidManifest.xml:33:9-37:51
+208            android:name="com.google.android.gms.auth.api.signin.RevocationBoundService"
+208-->[com.google.android.gms:play-services-auth:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/185c3fae7932a5064493eeedf7ffde72/transformed/jetified-play-services-auth-21.0.0/AndroidManifest.xml:34:13-89
+209            android:exported="true"
+209-->[com.google.android.gms:play-services-auth:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/185c3fae7932a5064493eeedf7ffde72/transformed/jetified-play-services-auth-21.0.0/AndroidManifest.xml:35:13-36
+210            android:permission="com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION"
+210-->[com.google.android.gms:play-services-auth:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/185c3fae7932a5064493eeedf7ffde72/transformed/jetified-play-services-auth-21.0.0/AndroidManifest.xml:36:13-107
+211            android:visibleToInstantApps="true" />
+211-->[com.google.android.gms:play-services-auth:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/185c3fae7932a5064493eeedf7ffde72/transformed/jetified-play-services-auth-21.0.0/AndroidManifest.xml:37:13-48
+212
+213        <activity
+213-->[com.google.android.gms:play-services-base:18.3.0] /home/nyson/.gradle/caches/8.10.2/transforms/53e8a1536776889b4970f155b8de1731/transformed/jetified-play-services-base-18.3.0/AndroidManifest.xml:20:9-22:45
+214            android:name="com.google.android.gms.common.api.GoogleApiActivity"
+214-->[com.google.android.gms:play-services-base:18.3.0] /home/nyson/.gradle/caches/8.10.2/transforms/53e8a1536776889b4970f155b8de1731/transformed/jetified-play-services-base-18.3.0/AndroidManifest.xml:20:19-85
+215            android:exported="false"
+215-->[com.google.android.gms:play-services-base:18.3.0] /home/nyson/.gradle/caches/8.10.2/transforms/53e8a1536776889b4970f155b8de1731/transformed/jetified-play-services-base-18.3.0/AndroidManifest.xml:22:19-43
+216            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+216-->[com.google.android.gms:play-services-base:18.3.0] /home/nyson/.gradle/caches/8.10.2/transforms/53e8a1536776889b4970f155b8de1731/transformed/jetified-play-services-base-18.3.0/AndroidManifest.xml:21:19-78
+217
+218        <provider
+218-->[com.google.firebase:firebase-common:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/8d7fb6eb7b755e5a8603a3d138b8aa46/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:23:9-28:39
+219            android:name="com.google.firebase.provider.FirebaseInitProvider"
+219-->[com.google.firebase:firebase-common:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/8d7fb6eb7b755e5a8603a3d138b8aa46/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:24:13-77
+220            android:authorities="com.example.tunyuke_v2.firebaseinitprovider"
+220-->[com.google.firebase:firebase-common:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/8d7fb6eb7b755e5a8603a3d138b8aa46/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:25:13-72
+221            android:directBootAware="true"
+221-->[com.google.firebase:firebase-common:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/8d7fb6eb7b755e5a8603a3d138b8aa46/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:26:13-43
+222            android:exported="false"
+222-->[com.google.firebase:firebase-common:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/8d7fb6eb7b755e5a8603a3d138b8aa46/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:27:13-37
+223            android:initOrder="100" />
+223-->[com.google.firebase:firebase-common:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/8d7fb6eb7b755e5a8603a3d138b8aa46/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:28:13-36
+224        <provider
+224-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/nyson/.gradle/caches/8.10.2/transforms/f5f529c7ff79e4e70e410f7457794445/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:24:9-32:20
+225            android:name="androidx.startup.InitializationProvider"
+225-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/nyson/.gradle/caches/8.10.2/transforms/f5f529c7ff79e4e70e410f7457794445/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:25:13-67
+226            android:authorities="com.example.tunyuke_v2.androidx-startup"
+226-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/nyson/.gradle/caches/8.10.2/transforms/f5f529c7ff79e4e70e410f7457794445/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:26:13-68
+227            android:exported="false" >
+227-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/nyson/.gradle/caches/8.10.2/transforms/f5f529c7ff79e4e70e410f7457794445/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:27:13-37
+228            <meta-data
+228-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/nyson/.gradle/caches/8.10.2/transforms/f5f529c7ff79e4e70e410f7457794445/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:29:13-31:52
+229                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+229-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/nyson/.gradle/caches/8.10.2/transforms/f5f529c7ff79e4e70e410f7457794445/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:30:17-78
+230                android:value="androidx.startup" />
+230-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/nyson/.gradle/caches/8.10.2/transforms/f5f529c7ff79e4e70e410f7457794445/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:31:17-49
+231            <meta-data
+231-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+232                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+232-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+233                android:value="androidx.startup" />
+233-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+234        </provider>
+235
+236        <meta-data
+236-->[com.google.android.gms:play-services-basement:18.4.0] /home/nyson/.gradle/caches/8.10.2/transforms/88f5dd9eef4806c4643531bd6087421f/transformed/jetified-play-services-basement-18.4.0/AndroidManifest.xml:6:9-122
+237            android:name="com.google.android.gms.version"
+237-->[com.google.android.gms:play-services-basement:18.4.0] /home/nyson/.gradle/caches/8.10.2/transforms/88f5dd9eef4806c4643531bd6087421f/transformed/jetified-play-services-basement-18.4.0/AndroidManifest.xml:6:20-65
+238            android:value="@integer/google_play_services_version" />
+238-->[com.google.android.gms:play-services-basement:18.4.0] /home/nyson/.gradle/caches/8.10.2/transforms/88f5dd9eef4806c4643531bd6087421f/transformed/jetified-play-services-basement-18.4.0/AndroidManifest.xml:6:66-119
+239
+240        <receiver
+240-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+241            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+241-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+242            android:directBootAware="false"
+242-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+243            android:enabled="true"
+243-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+244            android:exported="true"
+244-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+245            android:permission="android.permission.DUMP" >
+245-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+246            <intent-filter>
+246-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+247                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+247-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+247-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+248            </intent-filter>
+249            <intent-filter>
+249-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+250                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+250-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+250-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+251            </intent-filter>
+252            <intent-filter>
+252-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+253                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+253-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+253-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+254            </intent-filter>
+255            <intent-filter>
+255-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+256                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+256-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+256-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/nyson/.gradle/caches/8.10.2/transforms/2ea067785e91a9617721a23a442c9809/transformed/jetified-profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+257            </intent-filter>
+258        </receiver> <!-- The activities will be merged into the manifest of the hosting app. -->
+259        <activity
+259-->[com.google.android.play:core-common:2.0.3] /home/nyson/.gradle/caches/8.10.2/transforms/fdba6a79ab53ff7b81c2e55844e4718b/transformed/jetified-core-common-2.0.3/AndroidManifest.xml:14:9-18:65
+260            android:name="com.google.android.play.core.common.PlayCoreDialogWrapperActivity"
+260-->[com.google.android.play:core-common:2.0.3] /home/nyson/.gradle/caches/8.10.2/transforms/fdba6a79ab53ff7b81c2e55844e4718b/transformed/jetified-core-common-2.0.3/AndroidManifest.xml:15:13-93
+261            android:exported="false"
+261-->[com.google.android.play:core-common:2.0.3] /home/nyson/.gradle/caches/8.10.2/transforms/fdba6a79ab53ff7b81c2e55844e4718b/transformed/jetified-core-common-2.0.3/AndroidManifest.xml:16:13-37
+262            android:stateNotNeeded="true"
+262-->[com.google.android.play:core-common:2.0.3] /home/nyson/.gradle/caches/8.10.2/transforms/fdba6a79ab53ff7b81c2e55844e4718b/transformed/jetified-core-common-2.0.3/AndroidManifest.xml:17:13-42
+263            android:theme="@style/Theme.PlayCore.Transparent" />
+263-->[com.google.android.play:core-common:2.0.3] /home/nyson/.gradle/caches/8.10.2/transforms/fdba6a79ab53ff7b81c2e55844e4718b/transformed/jetified-core-common-2.0.3/AndroidManifest.xml:18:13-62
+264    </application>
+265
+266</manifest>
