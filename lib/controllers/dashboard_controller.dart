@@ -1,9 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart'; // For location services
-import 'package:Tunyuke/models/pickup_point.dart'; // Import our new model
+import 'package:geolocator/geolocator.dart';
+import 'package:Tunyuke/models/pickup_point.dart';
 
 class DashboardController extends ChangeNotifier {
   final ValueNotifier<String> _currentTimeGreeting = ValueNotifier<String>(
@@ -20,7 +22,7 @@ class DashboardController extends ChangeNotifier {
   final ValueNotifier<int> _currentIndex = ValueNotifier<int>(0);
   ValueNotifier<int> get currentIndex => _currentIndex;
 
-  // --- Map-related properties ---
+  // Map-related properties
   final ValueNotifier<LatLng?> _userLocation = ValueNotifier<LatLng?>(null);
   ValueNotifier<LatLng?> get userLocation => _userLocation;
 
@@ -34,7 +36,22 @@ class DashboardController extends ChangeNotifier {
   final ValueNotifier<String?> _locationError = ValueNotifier<String?>(null);
   ValueNotifier<String?> get locationError => _locationError;
 
-  // Mock data for cards (existing)
+  // Nearest pickup point properties
+  final ValueNotifier<String?> _nearestPickupPointName = ValueNotifier<String?>(
+    null,
+  );
+  ValueNotifier<String?> get nearestPickupPointName => _nearestPickupPointName;
+
+  final ValueNotifier<double?> _distanceToNearestPickupPointKm =
+      ValueNotifier<double?>(null);
+  ValueNotifier<double?> get distanceToNearestPickupPointKm =>
+      _distanceToNearestPickupPointKm;
+
+  // Add debug information
+  final ValueNotifier<String> _debugInfo = ValueNotifier<String>("");
+  ValueNotifier<String> get debugInfo => _debugInfo;
+
+  // Mock data for cards
   final List<Map<String, dynamic>> dashboardCardsData = [
     {
       'icon': Icons.school_rounded,
@@ -73,7 +90,7 @@ class DashboardController extends ChangeNotifier {
   DashboardController() {
     _initializeGreeting();
     _fetchUserNameFromFirebase();
-    _initializeLocationAndMapData(); // New initialization for map data
+    _initializeLocationAndMapData();
   }
 
   void _initializeGreeting() {
@@ -111,61 +128,69 @@ class DashboardController extends ChangeNotifier {
     notifyListeners();
   }
 
-  // --- New Map-related methods ---
-
   Future<void> _initializeLocationAndMapData() async {
     _isLocationLoading.value = true;
     _locationError.value = null;
+    _nearestPickupPointName.value = null;
+    _distanceToNearestPickupPointKm.value = null;
+    _debugInfo.value = "Initializing location and map data...";
     notifyListeners();
 
-    await _determinePosition(); // Get user's location first
-    await _fetchPickupPointsFromFirebase(); // Then fetch pickup points
-    _calculateDistancesToPickupPoints(); // Calculate distances once both are available
+    try {
+      // Get user's location first
+      await _determinePosition();
 
-    _isLocationLoading.value = false;
-    notifyListeners();
+      // Then fetch pickup points
+      await _fetchPickupPointsFromFirebase();
+
+      // Calculate distances and find nearest
+      if (_userLocation.value != null && _pickupPoints.value.isNotEmpty) {
+        _calculateDistancesToPickupPoints();
+        _findNearestPickupPoint();
+        _debugInfo.value = "";
+      } else {
+        _debugInfo.value = "";
+      }
+    } catch (e) {
+      _debugInfo.value = "";
+    } finally {
+      _isLocationLoading.value = false;
+      notifyListeners();
+    }
   }
 
-  /// Determine the current position of the device.
-  /// When permissions are not granted, the `locationError` will be set.
   Future<void> _determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    // Test if location services are enabled.
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      _locationError.value =
-          'Location services are disabled. Please enable them.';
-      return Future.error('Location services are disabled.');
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        _locationError.value = 'Location permissions are denied.';
-        return Future.error('Location permissions are denied');
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      _locationError.value =
-          'Location permissions are permanently denied, we cannot request permissions.';
-      return Future.error(
-        'Location permissions are permanently denied, we cannot request permissions.',
-      );
-    }
-
-    // When we reach here, permissions are granted and we can
-    // continue accessing the position of the device.
     try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _locationError.value =
+            'Location services are disabled. Please enable them.';
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          _locationError.value = 'Location permissions are denied.';
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        _locationError.value =
+            'Location permissions are permanently denied, we cannot request permissions.';
+        return;
+      }
+
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy:
-            LocationAccuracy.high, // High accuracy for ride-sharing
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 10), // Add timeout
       );
+
       _userLocation.value = LatLng(position.latitude, position.longitude);
-      _locationError.value = null; // Clear any previous error
+      _locationError.value = null;
+      print("User location found: ${position.latitude}, ${position.longitude}");
     } catch (e) {
       _locationError.value = 'Failed to get current location: $e';
       print('Error getting current location: $e');
@@ -173,39 +198,120 @@ class DashboardController extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Timers for periodic updates
+  Timer? _pickupPointsTimer;
+  Timer? _locationTimer;
+
   Future<void> _fetchPickupPointsFromFirebase() async {
     try {
-      // Assuming you have a collection named 'pickup_points' in Firestore
-      // with documents containing 'name', 'latitude', 'longitude'
+      print("Fetching pickup points from Firebase...");
+
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('pickup_points')
           .get();
 
-      List<PickupPoint> fetchedPoints = snapshot.docs.map((doc) {
-        return PickupPoint.fromFirestore(
-          doc.data() as Map<String, dynamic>,
-          doc.id,
-        );
-      }).toList();
+      print(
+        "Firebase query completed. Documents found: ${snapshot.docs.length}",
+      );
+
+      if (snapshot.docs.isEmpty) {
+        print("No pickup points found in Firebase collection 'pickup_points'");
+        _debugInfo.value = "No pickup points found in Firebase";
+        return;
+      }
+
+      List<PickupPoint> fetchedPoints = [];
+
+      for (var doc in snapshot.docs) {
+        try {
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+          print("Processing document ${doc.id}: $data");
+
+          // Validate required fields
+          if (data['name'] == null ||
+              data['latitude'] == null ||
+              data['longitude'] == null) {
+            print("Skipping document ${doc.id} due to missing required fields");
+            continue;
+          }
+
+          PickupPoint point = PickupPoint.fromFirestore(data, doc.id);
+          fetchedPoints.add(point);
+          print(
+            "Successfully created pickup point: ${point.name} at ${point.location}",
+          );
+        } catch (e) {
+          print("Error processing document ${doc.id}: $e");
+        }
+      }
 
       _pickupPoints.value = fetchedPoints;
-      _locationError.value = null; // Clear error if successful
+      _locationError.value = null;
+
+      print("Successfully fetched ${fetchedPoints.length} pickup points");
+      _debugInfo.value = "Fetched ${fetchedPoints.length} pickup points";
     } catch (e) {
       _locationError.value = 'Failed to fetch pickup points: $e';
       print("Error fetching pickup points: $e");
+      _debugInfo.value = "Error fetching pickup points: $e";
     }
     notifyListeners();
   }
 
+  void _startPeriodicUpdates() {
+    // Cancel existing timers if any
+    _stopPeriodicUpdates();
+
+    // Start periodic location updates every 5 seconds
+    _locationTimer = Timer.periodic(Duration(seconds: 5), (_) {
+      _determinePosition();
+    });
+
+    // Start periodic pickup points updates every 5 seconds
+    _pickupPointsTimer = Timer.periodic(Duration(seconds: 5), (_) async {
+      await _fetchPickupPointsFromFirebase();
+      if (_userLocation.value != null && _pickupPoints.value.isNotEmpty) {
+        _calculateDistancesToPickupPoints();
+        _findNearestPickupPoint();
+      }
+    });
+  }
+
+  void _stopPeriodicUpdates() {
+    _locationTimer?.cancel();
+    _pickupPointsTimer?.cancel();
+  }
+
+  @override
+  void dispose() {
+    _stopPeriodicUpdates();
+    _currentTimeGreeting.dispose();
+    _userName.dispose();
+    _walletBalance.dispose();
+    _currentIndex.dispose();
+    _userLocation.dispose();
+    _pickupPoints.dispose();
+    _isLocationLoading.dispose();
+    _locationError.dispose();
+    _nearestPickupPointName.dispose();
+    _distanceToNearestPickupPointKm.dispose();
+    _debugInfo.dispose();
+    super.dispose();
+  }
+
   void _calculateDistancesToPickupPoints() {
     if (_userLocation.value == null || _pickupPoints.value.isEmpty) {
-      return; // Cannot calculate without user location or pickup points
+      print(
+        "Cannot calculate distances: userLocation=${_userLocation.value}, pickupPoints=${_pickupPoints.value.length}",
+      );
+      return;
     }
 
     final userLat = _userLocation.value!.latitude;
     final userLon = _userLocation.value!.longitude;
 
     List<PickupPoint> updatedPoints = [];
+
     for (var point in _pickupPoints.value) {
       final distance = Geolocator.distanceBetween(
         userLat,
@@ -213,23 +319,85 @@ class DashboardController extends ChangeNotifier {
         point.location.latitude,
         point.location.longitude,
       );
+
       updatedPoints.add(point.copyWith(distanceMeters: distance));
+      print(
+        "Distance to ${point.name}: ${(distance / 1000).toStringAsFixed(2)} km",
+      );
     }
+
     _pickupPoints.value = updatedPoints;
     notifyListeners();
   }
 
-  /// Refreshes user location and pickup points data
-  ///
-  /// This can be called from a pull-to-refresh or manual refresh button
-  /// to update the user's current location and fetch the latest pickup points
-  /// from Firebase. It will also recalculate distances between the user and
-  /// pickup points.
+  void _findNearestPickupPoint() {
+    if (_userLocation.value == null || _pickupPoints.value.isEmpty) {
+      _nearestPickupPointName.value = null;
+      _distanceToNearestPickupPointKm.value = null;
+      return;
+    }
+
+    double minDistanceMeters = double.infinity;
+    PickupPoint? nearestPoint;
+
+    for (var point in _pickupPoints.value) {
+      if (point.distanceMeters != null &&
+          point.distanceMeters! < minDistanceMeters) {
+        minDistanceMeters = point.distanceMeters!;
+        nearestPoint = point;
+      }
+    }
+
+    if (nearestPoint != null) {
+      _nearestPickupPointName.value = nearestPoint.name;
+      _distanceToNearestPickupPointKm.value = minDistanceMeters / 1000;
+      print(
+        "Nearest pickup point: ${nearestPoint.name} at ${(_distanceToNearestPickupPointKm.value! * 1000).toStringAsFixed(0)}m",
+      );
+    } else {
+      _nearestPickupPointName.value = null;
+      _distanceToNearestPickupPointKm.value = null;
+    }
+    notifyListeners();
+  }
+
   Future<void> refreshMapData() async {
     await _initializeLocationAndMapData();
   }
 
-  // --- Existing methods ---
+  // Method to manually test Firebase connection
+  Future<void> testFirebaseConnection() async {
+    try {
+      print("Testing Firebase connection...");
+
+      // Test basic connectivity
+      QuerySnapshot testSnapshot = await FirebaseFirestore.instance
+          .collection('pickup_points')
+          .limit(1)
+          .get();
+
+      print(
+        "Firebase test successful. Collection exists: ${testSnapshot.docs.isNotEmpty}",
+      );
+
+      // List all documents in the collection
+      QuerySnapshot allDocs = await FirebaseFirestore.instance
+          .collection('pickup_points')
+          .get();
+
+      print("All documents in pickup_points collection:");
+      for (var doc in allDocs.docs) {
+        print("Document ID: ${doc.id}, Data: ${doc.data()}");
+      }
+
+      _debugInfo.value =
+          "Firebase test completed. Found ${allDocs.docs.length} documents.";
+    } catch (e) {
+      print("Firebase test failed: $e");
+      _debugInfo.value = "Firebase test failed: $e";
+    }
+    notifyListeners();
+  }
 
   void onBottomNavItemTapped(int index, BuildContext context) {
     _currentIndex.value = index;
@@ -252,18 +420,5 @@ class DashboardController extends ChangeNotifier {
 
   void onDashboardCardTapped(BuildContext context, String routeName) {
     Navigator.pushNamed(context, routeName);
-  }
-
-  @override
-  void dispose() {
-    _currentTimeGreeting.dispose();
-    _userName.dispose();
-    _walletBalance.dispose();
-    _currentIndex.dispose();
-    _userLocation.dispose(); // Dispose map related notifiers
-    _pickupPoints.dispose();
-    _isLocationLoading.dispose();
-    _locationError.dispose();
-    super.dispose();
   }
 }

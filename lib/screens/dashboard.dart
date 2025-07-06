@@ -20,7 +20,7 @@ class _DashboardPageState extends State<DashboardPage>
   late Animation<double> _fadeAnimation;
   late List<Animation<double>> _cardAnimations;
 
-  GoogleMapController? _mapController; // Controller for the Google Map
+  GoogleMapController? _mapController;
 
   @override
   void initState() {
@@ -70,15 +70,13 @@ class _DashboardPageState extends State<DashboardPage>
 
   void _onControllerChange() {
     setState(() {
-      // Rebuild the UI when any ValueNotifier in the controller changes
-      // Also, animate camera to user location if it becomes available
-      // and map controller is ready.
+      // Animate camera to user location if it becomes available
       if (_dashboardController.userLocation.value != null &&
           _mapController != null) {
         _mapController!.animateCamera(
           CameraUpdate.newLatLngZoom(
             _dashboardController.userLocation.value!,
-            14.0, // Zoom closer to user
+            14.0,
           ),
         );
       }
@@ -93,6 +91,89 @@ class _DashboardPageState extends State<DashboardPage>
     _staggerController.dispose();
     _mapController?.dispose();
     super.dispose();
+  }
+
+  Widget _buildNearestPickupPointInfo() {
+    return ValueListenableBuilder<String?>(
+      valueListenable: _dashboardController.nearestPickupPointName,
+      builder: (context, nearestName, child) {
+        return ValueListenableBuilder<double?>(
+          valueListenable: _dashboardController.distanceToNearestPickupPointKm,
+          builder: (context, distance, child) {
+            if (nearestName != null && distance != null) {
+              return Container(
+                margin: EdgeInsets.only(bottom: 8),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.location_on, color: Colors.blue[600], size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Nearest: $nearestName (${distance.toStringAsFixed(2)} km)',
+                        style: TextStyle(
+                          color: Colors.blue[800],
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return SizedBox.shrink();
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDebugInfo() {
+    return ValueListenableBuilder<String>(
+      valueListenable: _dashboardController.debugInfo,
+      builder: (context, debugText, child) {
+        if (debugText.isNotEmpty) {
+          return Container(
+            margin: EdgeInsets.only(bottom: 8),
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.orange[50],
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: Colors.orange[200]!),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.orange[600], size: 16),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    debugText,
+                    style: TextStyle(color: Colors.orange[800], fontSize: 12),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    _dashboardController.testFirebaseConnection();
+                  },
+                  child: Icon(
+                    Icons.refresh,
+                    color: Colors.orange[600],
+                    size: 16,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        return SizedBox.shrink();
+      },
+    );
   }
 
   @override
@@ -127,7 +208,13 @@ class _DashboardPageState extends State<DashboardPage>
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  // --- Map Section using the new widget ---
+                  // Debug info section
+                  _buildDebugInfo(),
+
+                  // Nearest pickup point info
+                  _buildNearestPickupPointInfo(),
+
+                  // Map Section
                   Container(
                     height: 250,
                     decoration: BoxDecoration(
@@ -167,6 +254,20 @@ class _DashboardPageState extends State<DashboardPage>
                                           _dashboardController.refreshMapData,
                                       onMapCreated: (controller) {
                                         _mapController = controller;
+                                        // Animate to user location if available
+                                        if (_dashboardController
+                                                .userLocation
+                                                .value !=
+                                            null) {
+                                          controller.animateCamera(
+                                            CameraUpdate.newLatLngZoom(
+                                              _dashboardController
+                                                  .userLocation
+                                                  .value!,
+                                              14.0,
+                                            ),
+                                          );
+                                        }
                                       },
                                     );
                                   },
@@ -180,7 +281,7 @@ class _DashboardPageState extends State<DashboardPage>
                   ),
                   SizedBox(height: 16.0),
 
-                  // --- Main Action Cards (Existing Section) ---
+                  // Main Action Cards
                   Expanded(
                     child: DashboardCardsGrid(
                       cardsData: _dashboardController.dashboardCardsData,
