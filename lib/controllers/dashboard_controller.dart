@@ -8,6 +8,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:Tunyuke/models/pickup_point.dart';
 
 class DashboardController extends ChangeNotifier {
+  // Add a flag to track if the controller is disposed
+  bool _isDisposed = false;
+
   final ValueNotifier<String> _currentTimeGreeting = ValueNotifier<String>(
     "Hey",
   );
@@ -51,14 +54,14 @@ class DashboardController extends ChangeNotifier {
   final ValueNotifier<String> _debugInfo = ValueNotifier<String>("");
   ValueNotifier<String> get debugInfo => _debugInfo;
 
-  // Mock data for cards
+  // Mock data for cards - use full paths as strings for Navigator.pushNamed
   final List<Map<String, dynamic>> dashboardCardsData = [
     {
       'icon': Icons.school_rounded,
       'title': "To Kihumuro Campus",
       'subtitle': "Morning rides 7:00-8:00 AM",
       'info': "Ready by 7:15 AM",
-      'route': '/to_campus',
+      'route': '/to_campus', // Use full path
       'gradientColors': [Color(0xFFFF9800), Color(0xFFFFB74D)],
     },
     {
@@ -66,7 +69,7 @@ class DashboardController extends ChangeNotifier {
       'title': "From Kihumuro Campus",
       'subtitle': "Evening rides 6:00-7:00 PM",
       'info': "Ready by 6:00 PM",
-      'route': '/from_campus',
+      'route': '/from_campus', // Use full path
       'gradientColors': [Color(0xFF3F51B5), Color(0xFF7986CB)],
     },
     {
@@ -74,7 +77,7 @@ class DashboardController extends ChangeNotifier {
       'title': "Schedule a Team Ride",
       'subtitle': "Create shared rides",
       'info': "Save up to 50%",
-      'route': '/schedule_team_ride',
+      'route': '/schedule_team_ride', // Use full path
       'gradientColors': [Color(0xFF4CAF50), Color(0xFF81C784)],
     },
     {
@@ -82,7 +85,7 @@ class DashboardController extends ChangeNotifier {
       'title': "Join Scheduled Ride",
       'subtitle': "Enter referral code",
       'info': "Join existing rides",
-      'route': '/onboard_scheduled_ride',
+      'route': '/onboard_scheduled_ride', // Use full path
       'gradientColors': [Color(0xFF9C27B0), Color(0xFFBA68C8)],
     },
   ];
@@ -94,6 +97,7 @@ class DashboardController extends ChangeNotifier {
   }
 
   void _initializeGreeting() {
+    if (_isDisposed) return;
     _currentTimeGreeting.value = "Hey";
     notifyListeners();
   }
@@ -106,6 +110,9 @@ class DashboardController extends ChangeNotifier {
             .collection('users')
             .doc(user.uid)
             .get();
+
+        // Check if disposed before updating
+        if (_isDisposed) return;
 
         if (userDoc.exists && userDoc.data() != null) {
           String? fetchedName =
@@ -120,15 +127,25 @@ class DashboardController extends ChangeNotifier {
         }
       } catch (e) {
         print("Error fetching user name from Firestore: $e");
+        // Check if disposed before updating
+        if (_isDisposed) return;
         _userName.value = "Error User";
       }
     } else {
+      // Check if disposed before updating
+      if (_isDisposed) return;
       _userName.value = "Guest";
     }
-    notifyListeners();
+
+    // Only notify listeners if not disposed
+    if (!_isDisposed) {
+      notifyListeners();
+    }
   }
 
   Future<void> _initializeLocationAndMapData() async {
+    if (_isDisposed) return;
+
     _isLocationLoading.value = true;
     _locationError.value = null;
     _nearestPickupPointName.value = null;
@@ -140,8 +157,14 @@ class DashboardController extends ChangeNotifier {
       // Get user's location first
       await _determinePosition();
 
+      // Check if disposed after async operation
+      if (_isDisposed) return;
+
       // Then fetch pickup points
       await _fetchPickupPointsFromFirebase();
+
+      // Check if disposed after async operation
+      if (_isDisposed) return;
 
       // Calculate distances and find nearest
       if (_userLocation.value != null && _pickupPoints.value.isNotEmpty) {
@@ -152,17 +175,23 @@ class DashboardController extends ChangeNotifier {
         _debugInfo.value = "";
       }
     } catch (e) {
+      if (_isDisposed) return;
       _debugInfo.value = "";
     } finally {
+      if (_isDisposed) return;
       _isLocationLoading.value = false;
+      _startPeriodicUpdates(); // Start periodic updates after initialization
       notifyListeners();
     }
   }
 
   Future<void> _determinePosition() async {
+    if (_isDisposed) return;
+
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
+        if (_isDisposed) return;
         _locationError.value =
             'Location services are disabled. Please enable them.';
         return;
@@ -172,12 +201,14 @@ class DashboardController extends ChangeNotifier {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
+          if (_isDisposed) return;
           _locationError.value = 'Location permissions are denied.';
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
+        if (_isDisposed) return;
         _locationError.value =
             'Location permissions are permanently denied, we cannot request permissions.';
         return;
@@ -188,14 +219,19 @@ class DashboardController extends ChangeNotifier {
         timeLimit: Duration(seconds: 10), // Add timeout
       );
 
+      if (_isDisposed) return;
       _userLocation.value = LatLng(position.latitude, position.longitude);
       _locationError.value = null;
       print("User location found: ${position.latitude}, ${position.longitude}");
     } catch (e) {
+      if (_isDisposed) return;
       _locationError.value = 'Failed to get current location: $e';
       print('Error getting current location: $e');
     }
-    notifyListeners();
+
+    if (!_isDisposed) {
+      notifyListeners();
+    }
   }
 
   // Timers for periodic updates
@@ -203,12 +239,16 @@ class DashboardController extends ChangeNotifier {
   Timer? _locationTimer;
 
   Future<void> _fetchPickupPointsFromFirebase() async {
+    if (_isDisposed) return;
+
     try {
       print("Fetching pickup points from Firebase...");
 
       QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('pickup_points')
           .get();
+
+      if (_isDisposed) return;
 
       print(
         "Firebase query completed. Documents found: ${snapshot.docs.length}",
@@ -245,34 +285,45 @@ class DashboardController extends ChangeNotifier {
         }
       }
 
+      if (_isDisposed) return;
       _pickupPoints.value = fetchedPoints;
       _locationError.value = null;
 
       print("Successfully fetched ${fetchedPoints.length} pickup points");
-      _debugInfo.value = "Fetched ${fetchedPoints.length} pickup points";
+      _debugInfo.value = "";
     } catch (e) {
+      if (_isDisposed) return;
       _locationError.value = 'Failed to fetch pickup points: $e';
       print("Error fetching pickup points: $e");
       _debugInfo.value = "Error fetching pickup points: $e";
     }
-    notifyListeners();
+
+    if (!_isDisposed) {
+      notifyListeners();
+    }
   }
 
   void _startPeriodicUpdates() {
+    if (_isDisposed) return;
+
     // Cancel existing timers if any
     _stopPeriodicUpdates();
 
     // Start periodic location updates every 5 seconds
     _locationTimer = Timer.periodic(Duration(seconds: 5), (_) {
-      _determinePosition();
+      if (!_isDisposed) {
+        _determinePosition();
+      }
     });
 
     // Start periodic pickup points updates every 5 seconds
     _pickupPointsTimer = Timer.periodic(Duration(seconds: 5), (_) async {
-      await _fetchPickupPointsFromFirebase();
-      if (_userLocation.value != null && _pickupPoints.value.isNotEmpty) {
-        _calculateDistancesToPickupPoints();
-        _findNearestPickupPoint();
+      if (!_isDisposed) {
+        await _fetchPickupPointsFromFirebase();
+        if (_userLocation.value != null && _pickupPoints.value.isNotEmpty) {
+          _calculateDistancesToPickupPoints();
+          _findNearestPickupPoint();
+        }
       }
     });
   }
@@ -284,6 +335,7 @@ class DashboardController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true; // Set the flag before disposing
     _stopPeriodicUpdates();
     _currentTimeGreeting.dispose();
     _userName.dispose();
@@ -300,9 +352,11 @@ class DashboardController extends ChangeNotifier {
   }
 
   void _calculateDistancesToPickupPoints() {
-    if (_userLocation.value == null || _pickupPoints.value.isEmpty) {
+    if (_isDisposed ||
+        _userLocation.value == null ||
+        _pickupPoints.value.isEmpty) {
       print(
-        "Cannot calculate distances: userLocation=${_userLocation.value}, pickupPoints=${_pickupPoints.value.length}",
+        "Cannot calculate distances: isDisposed=$_isDisposed, userLocation=${_userLocation.value}, pickupPoints=${_pickupPoints.value.length}",
       );
       return;
     }
@@ -327,13 +381,19 @@ class DashboardController extends ChangeNotifier {
     }
 
     _pickupPoints.value = updatedPoints;
-    notifyListeners();
+    if (!_isDisposed) {
+      notifyListeners();
+    }
   }
 
   void _findNearestPickupPoint() {
-    if (_userLocation.value == null || _pickupPoints.value.isEmpty) {
-      _nearestPickupPointName.value = null;
-      _distanceToNearestPickupPointKm.value = null;
+    if (_isDisposed ||
+        _userLocation.value == null ||
+        _pickupPoints.value.isEmpty) {
+      if (!_isDisposed) {
+        _nearestPickupPointName.value = null;
+        _distanceToNearestPickupPointKm.value = null;
+      }
       return;
     }
 
@@ -358,15 +418,22 @@ class DashboardController extends ChangeNotifier {
       _nearestPickupPointName.value = null;
       _distanceToNearestPickupPointKm.value = null;
     }
-    notifyListeners();
+
+    if (!_isDisposed) {
+      notifyListeners();
+    }
   }
 
   Future<void> refreshMapData() async {
-    await _initializeLocationAndMapData();
+    if (!_isDisposed) {
+      await _initializeLocationAndMapData();
+    }
   }
 
   // Method to manually test Firebase connection
   Future<void> testFirebaseConnection() async {
+    if (_isDisposed) return;
+
     try {
       print("Testing Firebase connection...");
 
@@ -375,6 +442,8 @@ class DashboardController extends ChangeNotifier {
           .collection('pickup_points')
           .limit(1)
           .get();
+
+      if (_isDisposed) return;
 
       print(
         "Firebase test successful. Collection exists: ${testSnapshot.docs.isNotEmpty}",
@@ -385,6 +454,8 @@ class DashboardController extends ChangeNotifier {
           .collection('pickup_points')
           .get();
 
+      if (_isDisposed) return;
+
       print("All documents in pickup_points collection:");
       for (var doc in allDocs.docs) {
         print("Document ID: ${doc.id}, Data: ${doc.data()}");
@@ -393,32 +464,34 @@ class DashboardController extends ChangeNotifier {
       _debugInfo.value =
           "Firebase test completed. Found ${allDocs.docs.length} documents.";
     } catch (e) {
+      if (_isDisposed) return;
       print("Firebase test failed: $e");
       _debugInfo.value = "Firebase test failed: $e";
     }
-    notifyListeners();
+
+    if (!_isDisposed) {
+      notifyListeners();
+    }
   }
 
   void onBottomNavItemTapped(int index, BuildContext context) {
+    if (_isDisposed) return;
+
     _currentIndex.value = index;
     notifyListeners();
 
     switch (index) {
       case 0:
+        Navigator.pushNamed(context, '/dashboard');
         break;
       case 1:
-        Navigator.pushNamed(context, '/ride_history');
-        break;
-      case 2:
-        Navigator.pushNamed(context, '/wallet');
-        break;
-      case 3:
         Navigator.pushNamed(context, '/profile');
         break;
     }
   }
 
   void onDashboardCardTapped(BuildContext context, String routeName) {
+    if (_isDisposed) return;
     Navigator.pushNamed(context, routeName);
   }
 }
