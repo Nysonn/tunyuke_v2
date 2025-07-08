@@ -83,7 +83,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: Icon(Icons.notifications_outlined, color: Colors.white),
           onPressed: () {
-            // Handle notifications
+            Navigator.pushNamed(context, '/notifications');
           },
         ),
       ],

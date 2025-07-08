@@ -1,4 +1,5 @@
 import 'package:Tunyuke/screens/dashboard.dart';
+import 'package:Tunyuke/screens/notifications.dart';
 import 'package:Tunyuke/screens/welcome_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -11,6 +12,7 @@ import 'package:Tunyuke/screens/from_campus_screen.dart';
 import 'package:Tunyuke/screens/schedule_team_ride_screen.dart';
 import 'package:Tunyuke/screens/onboard_scheduled_ride_screen.dart';
 import 'package:Tunyuke/screens/profile_screen.dart';
+import 'package:Tunyuke/controllers/to_campus_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,9 +21,12 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(
-    ChangeNotifierProvider(
-      // Wrap MyApp with ChangeNotifierProvider
-      create: (context) => DashboardController(),
+    MultiProvider(
+      providers: [
+        // Wrap MyApp with MultiProvider to provide multiple controllers
+        ChangeNotifierProvider(create: (context) => DashboardController()),
+        ChangeNotifierProvider(create: (context) => ToCampusController()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -35,14 +40,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Tunyuke',
       theme: ThemeData(primarySwatch: Colors.purple),
-      // Define your named routes here
       routes: {
         '/': (context) => const WelcomePage(),
         '/welcome': (context) => const WelcomePage(),
         '/dashboard': (context) => DashboardPage(),
+        '/notifications': (context) => Notifications(),
         '/login': (context) => LoginScreen(),
-        '/to_campus': (context) => const ToCampusScreen(),
-        '/from_campus': (context) => const FromCampusScreen(),
+        '/to_campus': (context) => ToCampusPage(),
+        '/from_campus': (context) => const FromCampusPage(),
         '/schedule_team_ride': (context) => const ScheduleTeamRideScreen(),
         '/onboard_scheduled_ride': (context) =>
             const OnboardScheduledRideScreen(),
