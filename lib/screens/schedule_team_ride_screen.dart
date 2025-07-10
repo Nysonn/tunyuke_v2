@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../controllers/schedule_team_ride_controller.dart';
-import 'package:google_maps_webservice/places.dart'
-    hide PlacesSearchResult; // Import for PlacesSearchResult
+import '../screens/waiting_screen.dart'; // Add this import
+// import 'package:google_maps_webservice/places.dart'
+//     hide PlacesSearchResult;
 
 class ScheduleTeamRideScreen extends StatefulWidget {
   const ScheduleTeamRideScreen({super.key});
@@ -79,11 +80,11 @@ class _ScheduleTeamRideScreenState extends State<ScheduleTeamRideScreen> {
     // Additional checks not covered by TextFormField validators
     if (controller.selectedPickupOption.value == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
             "Please select a pickup option (Current Location or Pickup Station).",
           ),
-          backgroundColor: Colors.orange,
+          backgroundColor: Colors.orange[600],
         ),
       );
       return;
@@ -92,9 +93,9 @@ class _ScheduleTeamRideScreenState extends State<ScheduleTeamRideScreen> {
     if (controller.selectedPickupOption.value == "pickup_station" &&
         controller.selectedPickupStation.value == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text("Please select a specific pickup station."),
-          backgroundColor: Colors.orange,
+          backgroundColor: Colors.orange[600],
         ),
       );
       return;
@@ -103,11 +104,11 @@ class _ScheduleTeamRideScreenState extends State<ScheduleTeamRideScreen> {
     if (controller.selectedPickupOption.value == "current_location" &&
         controller.currentLocation.value == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
             "Please wait for current location to be determined or select a pickup station.",
           ),
-          backgroundColor: Colors.orange,
+          backgroundColor: Colors.orange[600],
         ),
       );
       return;
@@ -115,11 +116,11 @@ class _ScheduleTeamRideScreenState extends State<ScheduleTeamRideScreen> {
 
     if (controller.selectedDestinationOption.value == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
             "Please select a destination option (Pickup Station or Custom Destination).",
           ),
-          backgroundColor: Colors.orange,
+          backgroundColor: Colors.orange[600],
         ),
       );
       return;
@@ -128,9 +129,9 @@ class _ScheduleTeamRideScreenState extends State<ScheduleTeamRideScreen> {
     if (controller.selectedDestinationOption.value == "pickup_station" &&
         controller.selectedDestinationStation.value == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text("Please select a specific destination station."),
-          backgroundColor: Colors.orange,
+          backgroundColor: Colors.orange[600],
         ),
       );
       return;
@@ -139,11 +140,11 @@ class _ScheduleTeamRideScreenState extends State<ScheduleTeamRideScreen> {
     if (controller.selectedDestinationOption.value == "custom_destination" &&
         controller.selectedCustomDestination.value == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
             "Please select a valid custom destination from the suggestions.",
           ),
-          backgroundColor: Colors.orange,
+          backgroundColor: Colors.orange[600],
         ),
       );
       return;
@@ -151,9 +152,9 @@ class _ScheduleTeamRideScreenState extends State<ScheduleTeamRideScreen> {
 
     if (controller.desiredDateTime.value == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text("Please select a date and time for the ride."),
-          backgroundColor: Colors.orange,
+          backgroundColor: Colors.orange[600],
         ),
       );
       return;
@@ -163,24 +164,13 @@ class _ScheduleTeamRideScreenState extends State<ScheduleTeamRideScreen> {
     controller.scheduleTeamRide().then((_) {
       if (controller.referralCode.value != null &&
           controller.farePerPerson.value != null) {
-        // Navigate to the next screen (SharedRideCodePage)
-        Navigator.pushNamed(
+        // Navigate to the waiting screen instead
+        Navigator.pushReplacement(
           context,
-          '/shared_ride_code',
-          arguments: {
-            "referralCode": controller.referralCode.value,
-            "farePerPerson": controller.farePerPerson.value,
-            "numberOfTravelers": controller.numberOfTravelers.value,
-            "destination":
-                controller.selectedDestinationOption.value ==
-                    "custom_destination"
-                ? controller.selectedCustomDestination.value!.name
-                : controller
-                      .selectedDestinationStation
-                      .value!
-                      .name, // Use .name for TunyukeLocationPoint
-            "desiredDateTime": controller.desiredDateTime.value,
-          },
+          MaterialPageRoute(
+            builder: (context) =>
+                WaitingScreen(rideId: controller.rideId.value ?? ''),
+          ),
         );
       } else if (controller.dataError.value != null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -234,10 +224,10 @@ class _ScheduleTeamRideScreenState extends State<ScheduleTeamRideScreen> {
         backgroundColor: theme.primaryColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Schedule a Team Ride",
           style: TextStyle(
             color: Colors.white,
@@ -248,16 +238,16 @@ class _ScheduleTeamRideScreenState extends State<ScheduleTeamRideScreen> {
         centerTitle: true,
       ),
       body: controller.isLoading.value && controller.referralCode.value == null
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : controller.dataError.value != null
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 16),
+                  Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  SizedBox(height: 16),
                   Text("Error: ${controller.dataError.value}"),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
                       controller.dataError.value =
@@ -265,49 +255,60 @@ class _ScheduleTeamRideScreenState extends State<ScheduleTeamRideScreen> {
                       controller
                           .initialize(); // Re-initialize to fetch stations
                     },
-                    child: const Text("Retry"),
+                    child: Text("Retry"),
                   ),
                 ],
               ),
             )
           : Form(
-              // Wrap with Form for validation
               key: _formKey,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Number of Travelers
+                    // Main form card
                     Card(
                       elevation: 2,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(24),
+                        padding: EdgeInsets.all(24),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              "Number of Travelers",
+                            Text(
+                              "Book Your Team Ride",
                               style: TextStyle(
-                                fontSize: 18,
+                                fontSize: 22,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.grey,
+                                color: Colors.grey[800],
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 24),
+
+                            // Number of Travelers
+                            Text(
+                              "Number of Travelers",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            SizedBox(height: 8),
                             TextFormField(
                               controller: _numberOfTravelersController,
                               decoration: InputDecoration(
-                                labelText:
-                                    "How many people are you traveling with?",
                                 hintText: "e.g., 5",
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                prefixIcon: const Icon(Icons.people_outline),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
                               ),
                               keyboardType: TextInputType.number,
                               onChanged: (value) {
@@ -325,357 +326,395 @@ class _ScheduleTeamRideScreenState extends State<ScheduleTeamRideScreen> {
                                 return null;
                               },
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
+                            SizedBox(height: 20),
 
-                    // Pickup Options
-                    Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
+                            // Pickup Location
+                            Text(
                               "Pickup Location",
                               style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[700],
                               ),
                             ),
-                            const SizedBox(height: 16),
-                            RadioListTile<String>(
-                              title: const Text("Current Location"),
-                              value: "current_location",
-                              groupValue: controller.selectedPickupOption.value,
-                              onChanged: (value) =>
-                                  controller.setSelectedPickupOption(value),
-                            ),
-                            if (controller.selectedPickupOption.value ==
-                                    "current_location" &&
-                                controller.currentLocation.value == null &&
-                                !controller.isLoading.value)
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                  left: 16.0,
-                                  bottom: 8.0,
+                            SizedBox(height: 8),
+                            Column(
+                              children: [
+                                RadioListTile<String>(
+                                  title: Text("Current Location"),
+                                  value: "current_location",
+                                  groupValue:
+                                      controller.selectedPickupOption.value,
+                                  onChanged: (value) =>
+                                      controller.setSelectedPickupOption(value),
+                                  contentPadding: EdgeInsets.zero,
                                 ),
-                                child: Text(
-                                  controller.dataError.value ??
-                                      "Getting current location...",
-                                  style: TextStyle(
-                                    color: controller.dataError.value != null
-                                        ? Colors.red
-                                        : Colors.grey,
+                                if (controller.selectedPickupOption.value ==
+                                        "current_location" &&
+                                    controller.currentLocation.value == null &&
+                                    !controller.isLoading.value)
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      left: 16.0,
+                                      bottom: 8.0,
+                                    ),
+                                    child: Text(
+                                      controller.dataError.value ??
+                                          "Getting current location...",
+                                      style: TextStyle(
+                                        color:
+                                            controller.dataError.value != null
+                                            ? Colors.red
+                                            : Colors.grey,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
-                            if (controller.selectedPickupOption.value ==
-                                    "current_location" &&
-                                controller.currentLocation.value != null)
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                  left: 16.0,
-                                  bottom: 8.0,
-                                ),
-                                child: Text(
-                                  "Current Location: Lat ${controller.currentLocation.value!.latitude.toStringAsFixed(4)}, Lng ${controller.currentLocation.value!.longitude.toStringAsFixed(4)}",
-                                  style: const TextStyle(color: Colors.green),
-                                ),
-                              ),
-                            RadioListTile<String>(
-                              title: const Text("Select from Pickup Stations"),
-                              value: "pickup_station",
-                              groupValue: controller.selectedPickupOption.value,
-                              onChanged: (value) =>
-                                  controller.setSelectedPickupOption(value),
-                            ),
-                            if (controller.selectedPickupOption.value ==
-                                "pickup_station")
-                              DropdownButtonFormField<TunyukeLocationPoint>(
-                                value: controller.selectedPickupStation.value,
-                                decoration: InputDecoration(
-                                  labelText: "Pickup Station",
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                                if (controller.selectedPickupOption.value ==
+                                        "current_location" &&
+                                    controller.currentLocation.value != null)
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      left: 16.0,
+                                      bottom: 8.0,
+                                    ),
+                                    child: Text(
+                                      "Current Location: Lat ${controller.currentLocation.value!.latitude.toStringAsFixed(4)}, Lng ${controller.currentLocation.value!.longitude.toStringAsFixed(4)}",
+                                      style: TextStyle(color: Colors.green),
+                                    ),
                                   ),
-                                  prefixIcon: const Icon(Icons.location_on),
+                                RadioListTile<String>(
+                                  title: Text("Select from Pickup Stations"),
+                                  value: "pickup_station",
+                                  groupValue:
+                                      controller.selectedPickupOption.value,
+                                  onChanged: (value) =>
+                                      controller.setSelectedPickupOption(value),
+                                  contentPadding: EdgeInsets.zero,
                                 ),
-                                items: controller.tunyukeStations.value.map((
-                                  station,
-                                ) {
-                                  return DropdownMenuItem(
-                                    value: station,
-                                    child: Text(station.name),
-                                  );
-                                }).toList(),
-                                onChanged: (value) =>
-                                    controller.setSelectedPickupStation(value),
-                                validator: (value) =>
-                                    (controller.selectedPickupOption.value ==
-                                            "pickup_station" &&
-                                        value == null)
-                                    ? "Please select a station"
-                                    : null,
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
+                                if (controller.selectedPickupOption.value ==
+                                    "pickup_station")
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      left: 16.0,
+                                      top: 8.0,
+                                    ),
+                                    child:
+                                        DropdownButtonFormField<
+                                          TunyukeLocationPoint
+                                        >(
+                                          value: controller
+                                              .selectedPickupStation
+                                              .value,
+                                          decoration: InputDecoration(
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            contentPadding:
+                                                EdgeInsets.symmetric(
+                                                  horizontal: 16,
+                                                  vertical: 12,
+                                                ),
+                                          ),
+                                          items: controller
+                                              .tunyukeStations
+                                              .value
+                                              .map((station) {
+                                                return DropdownMenuItem(
+                                                  value: station,
+                                                  child: Text(station.name),
+                                                );
+                                              })
+                                              .toList(),
+                                          onChanged: (value) => controller
+                                              .setSelectedPickupStation(value),
+                                          validator: (value) =>
+                                              (controller
+                                                          .selectedPickupOption
+                                                          .value ==
+                                                      "pickup_station" &&
+                                                  value == null)
+                                              ? "Please select a station"
+                                              : null,
+                                        ),
+                                  ),
+                              ],
+                            ),
+                            SizedBox(height: 20),
 
-                    // Destination Options
-                    Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
+                            // Destination
+                            Text(
                               "Destination",
                               style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[700],
                               ),
                             ),
-                            const SizedBox(height: 16),
-                            RadioListTile<String>(
-                              title: const Text("Select from Tunyuke Stations"),
-                              value:
-                                  "pickup_station", // Reusing "pickup_station" for Tunyuke's predefined points
-                              groupValue:
-                                  controller.selectedDestinationOption.value,
-                              onChanged: (value) => controller
-                                  .setSelectedDestinationOption(value),
-                            ),
-                            RadioListTile<String>(
-                              title: const Text("Enter a Custom Destination"),
-                              value: "custom_destination",
-                              groupValue:
-                                  controller.selectedDestinationOption.value,
-                              onChanged: (value) {
-                                controller.setSelectedDestinationOption(value);
-                                if (value != "custom_destination") {
-                                  controller.setSelectedCustomDestination(null);
-                                  _customDestinationTextController.clear();
-                                }
-                              },
-                            ),
-                            if (controller.selectedDestinationOption.value ==
-                                "pickup_station")
-                              DropdownButtonFormField<TunyukeLocationPoint>(
-                                value:
-                                    controller.selectedDestinationStation.value,
-                                decoration: InputDecoration(
-                                  labelText: "Destination Station",
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  prefixIcon: const Icon(Icons.location_city),
+                            SizedBox(height: 8),
+                            Column(
+                              children: [
+                                RadioListTile<String>(
+                                  title: Text("Select from Tunyuke Stations"),
+                                  value: "pickup_station",
+                                  groupValue: controller
+                                      .selectedDestinationOption
+                                      .value,
+                                  onChanged: (value) => controller
+                                      .setSelectedDestinationOption(value),
+                                  contentPadding: EdgeInsets.zero,
                                 ),
-                                items: controller.tunyukeStations.value.map((
-                                  station,
-                                ) {
-                                  return DropdownMenuItem(
-                                    value: station,
-                                    child: Text(station.name),
-                                  );
-                                }).toList(),
-                                onChanged: (value) => controller
-                                    .setSelectedDestinationStation(value),
-                                validator: (value) =>
-                                    (controller
-                                                .selectedDestinationOption
-                                                .value ==
-                                            "pickup_station" &&
-                                        value == null)
-                                    ? "Please select a station"
-                                    : null,
-                              ),
-                            if (controller.selectedDestinationOption.value ==
-                                "custom_destination")
-                              Column(
-                                children: [
-                                  TextFormField(
-                                    controller:
-                                        _customDestinationTextController,
-                                    decoration: InputDecoration(
-                                      labelText: "Search Destination",
-                                      hintText: "e.g., Kampala Road",
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      prefixIcon: const Icon(Icons.search),
-                                      suffixIcon:
-                                          controller
-                                                  .selectedCustomDestination
-                                                  .value !=
-                                              null
-                                          ? const Icon(
-                                              Icons.check_circle,
-                                              color: Colors.green,
-                                            )
-                                          : null,
+                                if (controller
+                                        .selectedDestinationOption
+                                        .value ==
+                                    "pickup_station")
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      left: 16.0,
+                                      top: 8.0,
                                     ),
-                                    onChanged: (query) {
-                                      // onChanged will trigger setCustomDestinationQuery in controller
-                                      // which then triggers FutureBuilder
-                                    },
-                                    validator: (value) {
-                                      if (controller
-                                                  .selectedDestinationOption
-                                                  .value ==
-                                              "custom_destination" &&
-                                          (value == null ||
-                                              value.isEmpty ||
-                                              controller
-                                                      .selectedCustomDestination
-                                                      .value ==
-                                                  null ||
-                                              controller
-                                                      .selectedCustomDestination
-                                                      .value!
-                                                      .name !=
-                                                  value)) {
-                                        return "Please select a valid destination from suggestions.";
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  // Display search suggestions
-                                  if (controller.customDestinationQuery.value !=
-                                          null &&
-                                      controller
-                                          .customDestinationQuery
-                                          .value!
-                                          .isNotEmpty &&
-                                      controller
-                                              .selectedCustomDestination
-                                              .value
-                                              ?.name !=
-                                          _customDestinationTextController.text)
-                                    FutureBuilder<List<PlacesSearchResult>>(
-                                      future: controller.searchPlaces(
-                                        controller
-                                            .customDestinationQuery
-                                            .value!,
-                                      ),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return const Padding(
-                                            padding: EdgeInsets.all(8.0),
-                                            child: CircularProgressIndicator(),
-                                          );
-                                        }
-                                        if (snapshot.hasError) {
-                                          return Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Text(
-                                              "Error fetching suggestions: ${snapshot.error}",
+                                    child:
+                                        DropdownButtonFormField<
+                                          TunyukeLocationPoint
+                                        >(
+                                          value: controller
+                                              .selectedDestinationStation
+                                              .value,
+                                          decoration: InputDecoration(
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
-                                          );
-                                        }
-                                        if (!snapshot.hasData ||
-                                            snapshot.data!.isEmpty) {
-                                          return const Padding(
-                                            padding: EdgeInsets.all(8.0),
-                                            child: Text(
-                                              "No suggestions found.",
-                                            ),
-                                          );
-                                        }
-                                        return Container(
-                                          constraints: const BoxConstraints(
-                                            maxHeight: 200,
-                                          ),
-                                          child: ListView.builder(
-                                            shrinkWrap: true,
-                                            itemCount: snapshot.data!.length,
-                                            itemBuilder: (context, index) {
-                                              final suggestion =
-                                                  snapshot.data![index];
-                                              return ListTile(
-                                                title: Text(suggestion.name),
-                                                leading: const Icon(
-                                                  Icons.location_on,
+                                            contentPadding:
+                                                EdgeInsets.symmetric(
+                                                  horizontal: 16,
+                                                  vertical: 12,
                                                 ),
-                                                onTap: () {
-                                                  controller
-                                                      .setSelectedCustomDestination(
-                                                        suggestion,
-                                                      );
-                                                  _customDestinationTextController
-                                                          .text =
-                                                      suggestion.name;
-                                                  FocusScope.of(
-                                                    context,
-                                                  ).unfocus(); // Close keyboard
-                                                },
+                                          ),
+                                          items: controller
+                                              .tunyukeStations
+                                              .value
+                                              .map((station) {
+                                                return DropdownMenuItem(
+                                                  value: station,
+                                                  child: Text(station.name),
+                                                );
+                                              })
+                                              .toList(),
+                                          onChanged: (value) => controller
+                                              .setSelectedDestinationStation(
+                                                value,
+                                              ),
+                                          validator: (value) =>
+                                              (controller
+                                                          .selectedDestinationOption
+                                                          .value ==
+                                                      "pickup_station" &&
+                                                  value == null)
+                                              ? "Please select a station"
+                                              : null,
+                                        ),
+                                  ),
+                                RadioListTile<String>(
+                                  title: Text("Enter a Custom Destination"),
+                                  value: "custom_destination",
+                                  groupValue: controller
+                                      .selectedDestinationOption
+                                      .value,
+                                  onChanged: (value) {
+                                    controller.setSelectedDestinationOption(
+                                      value,
+                                    );
+                                    if (value != "custom_destination") {
+                                      controller.setSelectedCustomDestination(
+                                        null,
+                                      );
+                                      _customDestinationTextController.clear();
+                                    }
+                                  },
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                                if (controller
+                                        .selectedDestinationOption
+                                        .value ==
+                                    "custom_destination")
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      left: 16.0,
+                                      top: 8.0,
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        TextFormField(
+                                          controller:
+                                              _customDestinationTextController,
+                                          decoration: InputDecoration(
+                                            hintText: "Search destination...",
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            contentPadding:
+                                                EdgeInsets.symmetric(
+                                                  horizontal: 16,
+                                                  vertical: 12,
+                                                ),
+                                            suffixIcon:
+                                                controller
+                                                        .selectedCustomDestination
+                                                        .value !=
+                                                    null
+                                                ? Icon(
+                                                    Icons.check_circle,
+                                                    color: Colors.green,
+                                                  )
+                                                : null,
+                                          ),
+                                          onChanged: (query) {
+                                            // onChanged will trigger setCustomDestinationQuery in controller
+                                          },
+                                          validator: (value) {
+                                            if (controller
+                                                        .selectedDestinationOption
+                                                        .value ==
+                                                    "custom_destination" &&
+                                                (value == null ||
+                                                    value.isEmpty ||
+                                                    controller
+                                                            .selectedCustomDestination
+                                                            .value ==
+                                                        null ||
+                                                    controller
+                                                            .selectedCustomDestination
+                                                            .value!
+                                                            .name !=
+                                                        value)) {
+                                              return "Please select a valid destination from suggestions.";
+                                            }
+                                            return null;
+                                          },
+                                        ),
+                                        // Display search suggestions
+                                        if (controller
+                                                    .customDestinationQuery
+                                                    .value !=
+                                                null &&
+                                            controller
+                                                .customDestinationQuery
+                                                .value!
+                                                .isNotEmpty &&
+                                            controller
+                                                    .selectedCustomDestination
+                                                    .value
+                                                    ?.name !=
+                                                _customDestinationTextController
+                                                    .text)
+                                          FutureBuilder<
+                                            List<PlacesSearchResult>
+                                          >(
+                                            future: controller.searchPlaces(
+                                              controller
+                                                  .customDestinationQuery
+                                                  .value!,
+                                            ),
+                                            builder: (context, snapshot) {
+                                              if (snapshot.connectionState ==
+                                                  ConnectionState.waiting) {
+                                                return Padding(
+                                                  padding: EdgeInsets.all(8.0),
+                                                  child:
+                                                      CircularProgressIndicator(),
+                                                );
+                                              }
+                                              if (snapshot.hasError) {
+                                                return Padding(
+                                                  padding: EdgeInsets.all(8.0),
+                                                  child: Text(
+                                                    "Error fetching suggestions: ${snapshot.error}",
+                                                  ),
+                                                );
+                                              }
+                                              if (!snapshot.hasData ||
+                                                  snapshot.data!.isEmpty) {
+                                                return Padding(
+                                                  padding: EdgeInsets.all(8.0),
+                                                  child: Text(
+                                                    "No suggestions found.",
+                                                  ),
+                                                );
+                                              }
+                                              return Container(
+                                                constraints: BoxConstraints(
+                                                  maxHeight: 200,
+                                                ),
+                                                child: ListView.builder(
+                                                  shrinkWrap: true,
+                                                  itemCount:
+                                                      snapshot.data!.length,
+                                                  itemBuilder: (context, index) {
+                                                    final suggestion =
+                                                        snapshot.data![index];
+                                                    return ListTile(
+                                                      title: Text(
+                                                        suggestion.name,
+                                                      ),
+                                                      leading: Icon(
+                                                        Icons.location_on,
+                                                      ),
+                                                      onTap: () {
+                                                        controller
+                                                            .setSelectedCustomDestination(
+                                                              suggestion,
+                                                            );
+                                                        _customDestinationTextController
+                                                                .text =
+                                                            suggestion.name;
+                                                        FocusScope.of(
+                                                          context,
+                                                        ).unfocus();
+                                                      },
+                                                    );
+                                                  },
+                                                ),
                                               );
                                             },
                                           ),
-                                        );
-                                      },
+                                      ],
                                     ),
-                                ],
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
+                                  ),
+                              ],
+                            ),
+                            SizedBox(height: 20),
 
-                    // Date & Time Picker
-                    Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
+                            // Date & Time
+                            Text(
                               "Date & Time",
                               style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.grey[700],
                               ),
                             ),
-                            const SizedBox(height: 16),
-                            ElevatedButton.icon(
-                              onPressed: () => _selectDateTime(controller),
-                              icon: const Icon(Icons.calendar_today),
-                              label: Text(
-                                controller.desiredDateTime.value != null
-                                    ? DateFormat('MMM dd, yyyy - HH:mm').format(
-                                        controller.desiredDateTime.value!,
-                                      )
-                                    : "Select Date & Time",
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12.0,
+                            SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () => _selectDateTime(controller),
+                                icon: Icon(Icons.calendar_today),
+                                label: Text(
+                                  controller.desiredDateTime.value != null
+                                      ? DateFormat(
+                                          'MMM dd, yyyy - HH:mm',
+                                        ).format(
+                                          controller.desiredDateTime.value!,
+                                        )
+                                      : "Select Date & Time",
                                 ),
-                                backgroundColor: Colors.grey[200],
-                                foregroundColor: Colors.black87,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
+                                style: OutlinedButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(vertical: 12.0),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                 ),
                               ),
                             ),
@@ -683,30 +722,59 @@ class _ScheduleTeamRideScreenState extends State<ScheduleTeamRideScreen> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 16),
+
+                    // Fare estimate card (if available)
+                    if (controller.farePerPerson.value != null)
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Estimated Fare per Person",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                              Text(
+                                "UGX ${controller.farePerPerson.value}",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.primaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    SizedBox(height: 32),
 
                     // Confirm Button
                     SizedBox(
-                      height: 56,
+                      height: 50,
                       child: ElevatedButton(
-                        onPressed: controller.isLoading.value
-                            ? null
-                            : _confirm, // Disable while loading
+                        onPressed: controller.isLoading.value ? null : _confirm,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: theme.primaryColor,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          elevation: 5,
                         ),
                         child: controller.isLoading.value
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : const Text(
-                                "Confirm Ride",
+                            ? CircularProgressIndicator(color: Colors.white)
+                            : Text(
+                                "Confirm Booking",
                                 style: TextStyle(
-                                  fontSize: 18,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,
                                 ),

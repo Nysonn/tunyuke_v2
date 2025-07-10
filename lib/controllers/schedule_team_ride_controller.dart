@@ -111,6 +111,9 @@ class ScheduleTeamRideController extends ChangeNotifier {
   final ValueNotifier<String?> _referralCode = ValueNotifier<String?>(null);
   ValueNotifier<String?> get referralCode => _referralCode;
 
+  final ValueNotifier<String?> _rideId = ValueNotifier<String?>(null); // Add this
+  ValueNotifier<String?> get rideId => _rideId; // Add this
+
   final ValueNotifier<int?> _farePerPerson = ValueNotifier<int?>(
     null,
   ); // Backend will calculate this
@@ -515,8 +518,8 @@ class ScheduleTeamRideController extends ChangeNotifier {
     // 5. Construct the request body for your Golang backend
     Map<String, dynamic> requestBody = {
       "seats": _numberOfTravelers.value,
-      "scheduled_at": _desiredDateTime.value!
-          .toIso8601String(), // ISO 8601 format
+      "scheduled_at":
+          '${_desiredDateTime.value!.toUtc().toIso8601String().split('.')[0]}Z',
       "pickup_point_id": pickupPointId,
       "pickup_name": pickupName,
       "pickup_lat": pickupLat,
@@ -544,6 +547,7 @@ class ScheduleTeamRideController extends ChangeNotifier {
       if (response.statusCode == 200 || response.statusCode == 201) {
         // 200 OK or 201 Created
         final Map<String, dynamic> responseData = json.decode(response.body);
+        _rideId.value = responseData['id']; // Add this line
         _referralCode.value = responseData['referral_code'];
         // The API response does not explicitly show 'fare_per_person' in the example.
         // You'll need to confirm if your backend calculation returns this.
@@ -582,16 +586,17 @@ class ScheduleTeamRideController extends ChangeNotifier {
     _numberOfTravelers.dispose();
     _selectedPickupOption.dispose();
     _selectedDestinationOption.dispose();
-    _tunyukeStations.dispose(); // Changed from pickupStations
+    _tunyukeStations.dispose();
     _selectedPickupStation.dispose();
     _selectedDestinationStation.dispose();
     _customDestinationQuery.dispose();
     _selectedCustomDestination.dispose();
-    _currentLocation.dispose(); // Dispose current location notifier
+    _currentLocation.dispose();
     _desiredDateTime.dispose();
     _isLoading.dispose();
     _dataError.dispose();
     _referralCode.dispose();
+    _rideId.dispose(); // Add this line
     _farePerPerson.dispose();
     super.dispose();
   }

@@ -14,6 +14,7 @@ import 'package:Tunyuke/screens/onboard_scheduled_ride_screen.dart';
 import 'package:Tunyuke/screens/profile_screen.dart';
 import 'package:Tunyuke/controllers/to_campus_controller.dart';
 import 'package:Tunyuke/controllers/schedule_team_ride_controller.dart';
+import 'package:Tunyuke/controllers/waiting_time_controller.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -45,7 +46,10 @@ void main() async {
         ChangeNotifierProvider(create: (context) => ToCampusController()),
         ChangeNotifierProvider(
           create: (context) => ScheduleTeamRideController(),
-        ), // Add your new controller here
+        ),
+        ChangeNotifierProvider(
+          create: (context) => WaitingTimeController(),
+        ), // Add your waiting time controller here
       ],
       child: const MyApp(),
     ),
