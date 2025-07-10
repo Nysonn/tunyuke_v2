@@ -301,8 +301,13 @@ class _DashboardPageState extends State<DashboardPage>
         builder: (context, currentIndex, child) {
           return DashboardBottomNavBar(
             currentIndex: currentIndex,
-            onItemTapped: (index) =>
-                _dashboardController.onBottomNavItemTapped(index, context),
+            onItemTapped: (index) {
+              _dashboardController.onBottomNavItemTapped(index, context);
+              // Specifically handle the case for index 1 (second item)
+              if (index == 1) {
+                // Add any additional logic for the second item here, if needed
+              }
+            },
             theme: theme,
           );
         },

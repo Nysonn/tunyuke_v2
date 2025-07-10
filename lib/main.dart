@@ -15,6 +15,8 @@ import 'package:Tunyuke/screens/profile_screen.dart';
 import 'package:Tunyuke/controllers/to_campus_controller.dart';
 import 'package:Tunyuke/controllers/schedule_team_ride_controller.dart';
 import 'package:Tunyuke/controllers/waiting_time_controller.dart';
+import 'package:Tunyuke/controllers/onboarding_controller.dart';
+import 'package:Tunyuke/controllers/rides_controller.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -47,9 +49,9 @@ void main() async {
         ChangeNotifierProvider(
           create: (context) => ScheduleTeamRideController(),
         ),
-        ChangeNotifierProvider(
-          create: (context) => WaitingTimeController(),
-        ), // Add your waiting time controller here
+        ChangeNotifierProvider(create: (context) => WaitingTimeController()),
+        ChangeNotifierProvider(create: (context) => OnboardingController()),
+        ChangeNotifierProvider(create: (context) => RidesController()),
       ],
       child: const MyApp(),
     ),
@@ -77,7 +79,7 @@ class MyApp extends StatelessWidget {
             const OnboardScheduledRideScreen(),
         '/profile': (context) => const ProfileScreen(),
       },
-      initialRoute: '/welcome', // Start on the WelcomePage
+      initialRoute: '/welcome',
       debugShowCheckedModeBanner: false,
     );
   }

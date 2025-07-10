@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:Tunyuke/screens/rides_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:Tunyuke/models/pickup_point.dart';
+import 'package:Tunyuke/controllers/rides_controller.dart'; // Import the RidesController
+import 'package:provider/provider.dart';
 
 class DashboardController extends ChangeNotifier {
   // Add a flag to track if the controller is disposed
@@ -475,17 +478,32 @@ class DashboardController extends ChangeNotifier {
   }
 
   void onBottomNavItemTapped(int index, BuildContext context) {
-    if (_isDisposed) return;
-
     _currentIndex.value = index;
     notifyListeners();
 
     switch (index) {
       case 0:
-        Navigator.pushNamed(context, '/dashboard');
+        // Stay on dashboard - no navigation needed
         break;
       case 1:
+        // Navigate to rides screen with the provider context (Solution 1)
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChangeNotifierProvider.value(
+              value: Provider.of<RidesController>(context, listen: false),
+              child: const RidesScreen(),
+            ),
+          ),
+        );
+        break;
+      case 2:
+        // Navigate to profile
         Navigator.pushNamed(context, '/profile');
+        break;
+      case 3:
+        // Navigate to notifications
+        Navigator.pushNamed(context, '/notifications');
         break;
     }
   }
