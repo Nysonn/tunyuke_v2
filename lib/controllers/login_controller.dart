@@ -5,20 +5,21 @@ class LoginController {
   final AuthService _authService;
   final Function(String message) onSignInSuccess;
   final Function(String message) onSignInError;
-  final Function() onNavigateToDashboard;
+  // Removed onNavigateToDashboard from controller's direct responsibility
 
   LoginController({
     required AuthService authService,
     required this.onSignInSuccess,
     required this.onSignInError,
-    required this.onNavigateToDashboard,
+    // No longer requiring onNavigateToDashboard as a direct parameter
   }) : _authService = authService;
 
   Future<void> signIn({required String email, required String password}) async {
     try {
       await _authService.signInWithEmailAndPassword(email, password);
       onSignInSuccess("User signed in successfully!");
-      onNavigateToDashboard(); // Trigger navigation via callback
+      // Don't navigate here. The UI (LoginScreen) will handle navigation
+      // after it receives the success callback.
     } on FirebaseAuthException catch (e) {
       String message;
       if (e.code == 'user-not-found') {

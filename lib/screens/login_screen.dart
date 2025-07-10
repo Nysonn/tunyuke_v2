@@ -33,23 +33,25 @@ class _LoginScreenState extends State<LoginScreen> {
       authService: AuthService(), // Pass an instance of AuthService
       onSignInSuccess: (message) {
         print(message);
-        // No SnackBar on success, just navigate
-      },
-      onSignInError: (message) {
-        print("Login error: $message");
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(message)));
-      },
-      onNavigateToDashboard: () {
+        // Now, the navigation is solely handled by the widget after success.
         if (mounted) {
-          // Ensure widget is still in the tree before navigating
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => DashboardPage()),
           );
         }
       },
+      onSignInError: (message) {
+        print("Login error: $message");
+        if (mounted) {
+          // <--- ADDED mounted check here
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(message)));
+        }
+      },
+      // onNavigateToDashboard is no longer needed as a direct controller callback
+      // since navigation is handled in onSignInSuccess
     );
   }
 
@@ -79,9 +81,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _handleForgotPassword() {
     print("Forgot Password pressed!");
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Forgot Password functionality coming soon!')),
-    );
+    if (mounted) {
+      // Added mounted check for this SnackBar too
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Forgot Password functionality coming soon!')),
+      );
+    }
   }
 
   @override

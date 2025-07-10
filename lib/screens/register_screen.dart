@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:Tunyuke/screens/login_screen.dart';
-import 'package:Tunyuke/services/auth_service.dart'; // Import AuthService
+import 'package:Tunyuke/services/auth_service.dart';
 
-// Import your new components
 import 'package:Tunyuke/components/common/app_logo_widget.dart';
 import 'package:Tunyuke/components/register_screen/register_header_section.dart';
 import 'package:Tunyuke/components/register_screen/register_form_fields.dart';
 import 'package:Tunyuke/components/register_screen/register_buttons_section.dart';
 
-// Import the new controller
 import 'package:Tunyuke/controllers/register_controller.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -22,33 +20,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  late final RegisterController _registerController; // Declare as late final
+  late final RegisterController _registerController;
 
   @override
   void initState() {
     super.initState();
-    // Initialize RegisterController in initState
     _registerController = RegisterController(
-      authService: AuthService(), // Pass an instance of AuthService
+      authService: AuthService(),
       onSignUpSuccess: (message) {
         print(message);
-        // No SnackBar on success, just navigate
-      },
-      onSignUpError: (message) {
-        print("Sign-up error: $message");
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(message)));
-      },
-      onNavigateToLogin: () {
         if (mounted) {
-          // Ensure widget is still in the tree before navigating
+          // Now, the navigation is solely handled by the widget after success.
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => LoginScreen()),
           );
         }
       },
+      onSignUpError: (message) {
+        print("Sign-up error: $message");
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(message)));
+        }
+      },
+      // onNavigateToLogin is no longer needed as a direct controller callback
+      // since navigation is handled in onSignUpSuccess
     );
   }
 
@@ -61,7 +59,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void _attemptSignUp() {
-    // Renamed from _signUp to avoid confusion with controller's signUp
     if (_formKey.currentState!.validate()) {
       _registerController.signUp(
         email: _emailController.text,
@@ -118,7 +115,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: AppLogoWidget(
                           imageUrl:
                               'https://res.cloudinary.com/df3lhzzy7/image/upload/v1749768253/unnamed_p6zzod.jpg',
-                          size: 80.0, // Specific size for register screen
+                          size: 80.0,
                         ),
                       ),
                       SizedBox(height: 40.0),
@@ -131,7 +128,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       SizedBox(height: 32.0),
                       RegisterButtonsSection(
-                        onSignUpPressed: _attemptSignUp, // Call the new method
+                        onSignUpPressed: _attemptSignUp,
                         onSignInPressed: _navigateToLogin,
                         theme: theme,
                       ),

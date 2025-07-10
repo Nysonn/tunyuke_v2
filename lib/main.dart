@@ -13,12 +13,29 @@ import 'package:Tunyuke/screens/schedule_team_ride_screen.dart';
 import 'package:Tunyuke/screens/onboard_scheduled_ride_screen.dart';
 import 'package:Tunyuke/screens/profile_screen.dart';
 import 'package:Tunyuke/controllers/to_campus_controller.dart';
+import 'package:Tunyuke/controllers/schedule_team_ride_controller.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Load .env file
+  await dotenv.load(fileName: ".env");
+
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  // Function to fetch and log FCM token
+  void fetchAndLogFCMToken() async {
+    String? token = await FirebaseMessaging.instance.getToken();
+    print('🔥 FCM registration token: $token');
+    // You can also store this locally or send it directly to your backend here
+  }
+
+  // Fetch and log the token
+  fetchAndLogFCMToken();
 
   runApp(
     MultiProvider(
@@ -26,6 +43,9 @@ void main() async {
         // Wrap MyApp with MultiProvider to provide multiple controllers
         ChangeNotifierProvider(create: (context) => DashboardController()),
         ChangeNotifierProvider(create: (context) => ToCampusController()),
+        ChangeNotifierProvider(
+          create: (context) => ScheduleTeamRideController(),
+        ), // Add your new controller here
       ],
       child: const MyApp(),
     ),

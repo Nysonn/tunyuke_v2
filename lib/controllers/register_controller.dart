@@ -1,17 +1,19 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:Tunyuke/services/auth_service.dart';
 
+enum SignUpResult { success, error }
+
 class RegisterController {
   final AuthService _authService;
+  // Change callbacks to return a result or just indicate success/failure
   final Function(String message) onSignUpSuccess;
   final Function(String message) onSignUpError;
-  final Function() onNavigateToLogin;
+  // Removed onNavigateToLogin from controller's direct responsibility
 
   RegisterController({
     required AuthService authService,
     required this.onSignUpSuccess,
     required this.onSignUpError,
-    required this.onNavigateToLogin,
   }) : _authService = authService;
 
   Future<void> signUp({
@@ -22,7 +24,8 @@ class RegisterController {
     try {
       await _authService.signUpWithEmailAndPassword(email, password, username);
       onSignUpSuccess("User signed up successfully!");
-      onNavigateToLogin(); // Trigger navigation to login screen
+      // Don't navigate here. The UI (RegisterScreen) will handle navigation
+      // after it receives the success callback.
     } on FirebaseAuthException catch (e) {
       String message;
       if (e.code == 'weak-password') {
