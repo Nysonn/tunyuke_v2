@@ -19,6 +19,9 @@ import 'package:Tunyuke/controllers/onboarding_controller.dart';
 import 'package:Tunyuke/controllers/rides_controller.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:Tunyuke/controllers/login_controller.dart';
+import 'package:Tunyuke/controllers/register_controller.dart';
+import 'package:Tunyuke/controllers/profile_screen_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,6 +55,9 @@ void main() async {
         ChangeNotifierProvider(create: (context) => WaitingTimeController()),
         ChangeNotifierProvider(create: (context) => OnboardingController()),
         ChangeNotifierProvider(create: (context) => RidesController()),
+        ChangeNotifierProvider(create: (context) => LoginController()),
+        ChangeNotifierProvider(create: (context) => RegisterController()),
+        ChangeNotifierProvider(create: (context) => ProfileScreenController()),
       ],
       child: const MyApp(),
     ),

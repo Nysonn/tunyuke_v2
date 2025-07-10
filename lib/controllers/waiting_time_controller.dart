@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,8 +25,8 @@ class Participant {
       id: json['id'] as String,
       rideId: json['ride_id'] as String,
       userUid: json['user_uid'] as String,
-      confirmedAt: json['confirmed_at'] != null 
-          ? DateTime.parse(json['confirmed_at']) 
+      confirmedAt: json['confirmed_at'] != null
+          ? DateTime.parse(json['confirmed_at'])
           : null,
       createdAt: DateTime.parse(json['created_at']),
     );
@@ -107,7 +108,9 @@ class WaitingTimeController extends ChangeNotifier {
 
   final String _backendBaseUrl = 'http://192.168.241.24:8080';
 
-  final ValueNotifier<RideDetails?> _rideDetails = ValueNotifier<RideDetails?>(null);
+  final ValueNotifier<RideDetails?> _rideDetails = ValueNotifier<RideDetails?>(
+    null,
+  );
   ValueNotifier<RideDetails?> get rideDetails => _rideDetails;
 
   final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
@@ -122,24 +125,30 @@ class WaitingTimeController extends ChangeNotifier {
 
   // Initialize the controller with a ride ID
   Future<void> initialize(String rideId) async {
-    await fetchRideDetails(rideId);
-    _startPeriodicRefresh(rideId);
+    // Use addPostFrameCallback to ensure this runs after the current build is complete
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await fetchRideDetails(rideId);
+      _startPeriodicRefresh(rideId);
+    });
   }
 
   // Fetch ride details from backend
   Future<void> fetchRideDetails(String rideId) async {
     if (_isDisposed) return;
-    
+
     _isLoading.value = true;
     _dataError.value = null;
-    notifyListeners();
+
+    // Only call notifyListeners if we're not in the middle of a build
+    _safeNotifyListeners();
 
     try {
-      final String? authToken = await FirebaseAuth.instance.currentUser?.getIdToken();
+      final String? authToken = await FirebaseAuth.instance.currentUser
+          ?.getIdToken();
       if (authToken == null) {
         _dataError.value = "User not authenticated. Please log in.";
         _isLoading.value = false;
-        notifyListeners();
+        _safeNotifyListeners();
         return;
       }
 
@@ -159,7 +168,8 @@ class WaitingTimeController extends ChangeNotifier {
         _dataError.value = null;
         print("Ride details fetched successfully");
       } else {
-        _dataError.value = "Failed to load ride details: ${response.statusCode} - ${response.body}";
+        _dataError.value =
+            "Failed to load ride details: ${response.statusCode} - ${response.body}";
         print("Backend error fetching ride details: ${response.body}");
       }
     } catch (e) {
@@ -169,20 +179,37 @@ class WaitingTimeController extends ChangeNotifier {
     } finally {
       if (_isDisposed) return;
       _isLoading.value = false;
+      _safeNotifyListeners();
+    }
+  }
+
+  // Safe method to call notifyListeners only when appropriate
+  void _safeNotifyListeners() {
+    if (!_isDisposed &&
+        WidgetsBinding.instance.schedulerPhase !=
+            SchedulerPhase.persistentCallbacks) {
       notifyListeners();
+    } else if (!_isDisposed) {
+      // Schedule for after the current build phase
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_isDisposed) {
+          notifyListeners();
+        }
+      });
     }
   }
 
   // Confirm participation in the ride
   Future<void> confirmParticipation(String rideId) async {
     if (_isDisposed) return;
-    
+
     _isLoading.value = true;
     _dataError.value = null;
     notifyListeners();
 
     try {
-      final String? authToken = await FirebaseAuth.instance.currentUser?.getIdToken();
+      final String? authToken = await FirebaseAuth.instance.currentUser
+          ?.getIdToken();
       if (authToken == null) {
         _dataError.value = "User not authenticated. Please log in.";
         _isLoading.value = false;
@@ -207,7 +234,8 @@ class WaitingTimeController extends ChangeNotifier {
         _dataError.value = null;
         print("Participation confirmed successfully");
       } else {
-        _dataError.value = "Failed to confirm participation: ${response.statusCode} - ${response.body}";
+        _dataError.value =
+            "Failed to confirm participation: ${response.statusCode} - ${response.body}";
         print("Backend error confirming participation: ${response.body}");
       }
     } catch (e) {
@@ -234,15 +262,16 @@ class WaitingTimeController extends ChangeNotifier {
     if (_rideDetails.value == null) return false;
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) return false;
-    
-    return _rideDetails.value!.participants
-        .any((p) => p.userUid == currentUser.uid && p.confirmedAt != null);
+
+    return _rideDetails.value!.participants.any(
+      (p) => p.userUid == currentUser.uid && p.confirmedAt != null,
+    );
   }
 
   // Start periodic refresh of ride details
   void _startPeriodicRefresh(String rideId) {
     _refreshTimer?.cancel();
-    _refreshTimer = Timer.periodic(Duration(seconds: 10), (_) {
+    _refreshTimer = Timer.periodic(Duration(seconds: 30), (_) {
       if (!_isDisposed) {
         fetchRideDetails(rideId);
       }
@@ -252,6 +281,11 @@ class WaitingTimeController extends ChangeNotifier {
   // Stop periodic refresh
   void _stopPeriodicRefresh() {
     _refreshTimer?.cancel();
+  }
+
+  // Refresh ride details manually
+  Future<void> refreshRideDetails(String rideId) async {
+    await fetchRideDetails(rideId);
   }
 
   @override

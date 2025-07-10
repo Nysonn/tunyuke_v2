@@ -8,6 +8,7 @@ import 'package:Tunyuke/components/register_screen/register_form_fields.dart';
 import 'package:Tunyuke/components/register_screen/register_buttons_section.dart';
 
 import 'package:Tunyuke/controllers/register_controller.dart';
+import 'package:provider/provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -20,36 +21,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  late final RegisterController _registerController;
-
-  @override
-  void initState() {
-    super.initState();
-    _registerController = RegisterController(
-      authService: AuthService(),
-      onSignUpSuccess: (message) {
-        print(message);
-        if (mounted) {
-          // Now, the navigation is solely handled by the widget after success.
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => LoginScreen()),
-          );
-        }
-      },
-      onSignUpError: (message) {
-        print("Sign-up error: $message");
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(message)));
-        }
-      },
-      // onNavigateToLogin is no longer needed as a direct controller callback
-      // since navigation is handled in onSignUpSuccess
-    );
-  }
-
   @override
   void dispose() {
     _emailController.dispose();
@@ -58,9 +29,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
-  void _attemptSignUp() {
+  void _attemptSignUp(BuildContext context) {
     if (_formKey.currentState!.validate()) {
-      _registerController.signUp(
+      Provider.of<RegisterController>(context, listen: false).signUp(
         email: _emailController.text,
         username: _usernameController.text,
         password: _passwordController.text,
@@ -68,7 +39,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  void _navigateToLogin() {
+  void _navigateToLogin(BuildContext context) {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => LoginScreen()),
@@ -78,68 +49,91 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              theme.primaryColor.withOpacity(0.05),
-              Colors.white,
-              theme.primaryColor.withOpacity(0.02),
-            ],
-            stops: [0.0, 0.5, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight:
-                    MediaQuery.of(context).size.height -
-                    MediaQuery.of(context).padding.top -
-                    MediaQuery.of(context).padding.bottom,
+    return Consumer<RegisterController>(
+      builder: (context, registerController, child) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (registerController.signUpSuccess) {
+            registerController.reset();
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => LoginScreen()),
+            );
+          } else if (registerController.errorMessage != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(registerController.errorMessage!)),
+            );
+            registerController.reset();
+          }
+        });
+        return Scaffold(
+          body: Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  theme.primaryColor.withOpacity(0.05),
+                  Colors.white,
+                  theme.primaryColor.withOpacity(0.02),
+                ],
+                stops: [0.0, 0.5, 1.0],
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SizedBox(height: 40.0),
-                      Center(
-                        child: AppLogoWidget(
-                          imageUrl:
-                              'https://res.cloudinary.com/df3lhzzy7/image/upload/v1749768253/unnamed_p6zzod.jpg',
-                          size: 80.0,
-                        ),
+            ),
+            child: SafeArea(
+              child: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight:
+                        MediaQuery.of(context).size.height -
+                        MediaQuery.of(context).padding.top -
+                        MediaQuery.of(context).padding.bottom,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(height: 40.0),
+                          Center(
+                            child: AppLogoWidget(
+                              imageUrl:
+                                  'https://res.cloudinary.com/df3lhzzy7/image/upload/v1749768253/unnamed_p6zzod.jpg',
+                              size: 80.0,
+                            ),
+                          ),
+                          SizedBox(height: 40.0),
+                          RegisterHeaderSection(theme: theme),
+                          SizedBox(height: 40.0),
+                          RegisterFormFields(
+                            emailController: _emailController,
+                            usernameController: _usernameController,
+                            passwordController: _passwordController,
+                          ),
+                          SizedBox(height: 32.0),
+                          RegisterButtonsSection(
+                            onSignUpPressed: () => _attemptSignUp(context),
+                            onSignInPressed: () => _navigateToLogin(context),
+                            theme: theme,
+                          ),
+                          if (registerController.isLoading)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 24.0),
+                              child: Center(child: CircularProgressIndicator()),
+                            ),
+                        ],
                       ),
-                      SizedBox(height: 40.0),
-                      RegisterHeaderSection(theme: theme),
-                      SizedBox(height: 40.0),
-                      RegisterFormFields(
-                        emailController: _emailController,
-                        usernameController: _usernameController,
-                        passwordController: _passwordController,
-                      ),
-                      SizedBox(height: 32.0),
-                      RegisterButtonsSection(
-                        onSignUpPressed: _attemptSignUp,
-                        onSignInPressed: _navigateToLogin,
-                        theme: theme,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

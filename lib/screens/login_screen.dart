@@ -12,6 +12,7 @@ import 'package:Tunyuke/components/login_screen/login_buttons_section.dart';
 
 // Import the new controller
 import 'package:Tunyuke/controllers/login_controller.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -23,38 +24,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  late final LoginController _loginController; // Declare as late final
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize LoginController in initState
-    _loginController = LoginController(
-      authService: AuthService(), // Pass an instance of AuthService
-      onSignInSuccess: (message) {
-        print(message);
-        // Now, the navigation is solely handled by the widget after success.
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => DashboardPage()),
-          );
-        }
-      },
-      onSignInError: (message) {
-        print("Login error: $message");
-        if (mounted) {
-          // <--- ADDED mounted check here
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(message)));
-        }
-      },
-      // onNavigateToDashboard is no longer needed as a direct controller callback
-      // since navigation is handled in onSignInSuccess
-    );
-  }
-
   @override
   void dispose() {
     _emailController.dispose();
@@ -62,102 +31,120 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _attemptSignIn() {
-    // Renamed from _signIn to avoid confusion with controller's signIn
+  void _attemptSignIn(BuildContext context) {
     if (_formKey.currentState!.validate()) {
-      _loginController.signIn(
+      Provider.of<LoginController>(context, listen: false).signIn(
         email: _emailController.text,
         password: _passwordController.text,
       );
     }
   }
 
-  void _navigateToRegister() {
+  void _navigateToRegister(BuildContext context) {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => RegisterScreen()),
     );
   }
 
-  void _handleForgotPassword() {
-    print("Forgot Password pressed!");
-    if (mounted) {
-      // Added mounted check for this SnackBar too
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Forgot Password functionality coming soon!')),
-      );
-    }
+  void _handleForgotPassword(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Forgot Password functionality coming soon!')),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              theme.primaryColor.withOpacity(0.05),
-              Colors.white,
-              theme.primaryColor.withOpacity(0.02),
-            ],
-            stops: [0.0, 0.5, 1.0],
-          ),
-        ),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight:
-                    MediaQuery.of(context).size.height -
-                    MediaQuery.of(context).padding.top -
-                    MediaQuery.of(context).padding.bottom,
+    return Consumer<LoginController>(
+      builder: (context, loginController, child) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (loginController.loginSuccess) {
+            loginController.reset();
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => DashboardPage()),
+            );
+          } else if (loginController.errorMessage != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(loginController.errorMessage!)),
+            );
+            loginController.reset();
+          }
+        });
+        return Scaffold(
+          body: Container(
+            width: double.infinity,
+            height: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  theme.primaryColor.withOpacity(0.05),
+                  Colors.white,
+                  theme.primaryColor.withOpacity(0.02),
+                ],
+                stops: [0.0, 0.5, 1.0],
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SizedBox(height: 40.0),
-                      Center(
-                        child: AppLogoWidget(
-                          imageUrl:
-                              'https://res.cloudinary.com/df3lhzzy7/image/upload/v1749768253/unnamed_p6zzod.jpg',
-                          size: 80.0, // Specific size for login screen
-                        ),
+            ),
+            child: SafeArea(
+              child: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight:
+                        MediaQuery.of(context).size.height -
+                        MediaQuery.of(context).padding.top -
+                        MediaQuery.of(context).padding.bottom,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(height: 40.0),
+                          Center(
+                            child: AppLogoWidget(
+                              imageUrl:
+                                  'https://res.cloudinary.com/df3lhzzy7/image/upload/v1749768253/unnamed_p6zzod.jpg',
+                              size: 80.0, // Specific size for login screen
+                            ),
+                          ),
+                          SizedBox(height: 40.0),
+                          LoginHeaderSection(theme: theme),
+                          SizedBox(height: 40.0),
+                          LoginFormFields(
+                            emailController: _emailController,
+                            passwordController: _passwordController,
+                          ),
+                          SizedBox(height: 16.0),
+                          ForgotPasswordLink(
+                            onPressed: () => _handleForgotPassword(context),
+                            theme: theme,
+                          ),
+                          SizedBox(height: 16.0),
+                          LoginButtonsSection(
+                            onSignInPressed: () => _attemptSignIn(context),
+                            onSignUpPressed: () => _navigateToRegister(context),
+                            theme: theme,
+                          ),
+                          if (loginController.isLoading)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 24.0),
+                              child: Center(child: CircularProgressIndicator()),
+                            ),
+                        ],
                       ),
-                      SizedBox(height: 40.0),
-                      LoginHeaderSection(theme: theme),
-                      SizedBox(height: 40.0),
-                      LoginFormFields(
-                        emailController: _emailController,
-                        passwordController: _passwordController,
-                      ),
-                      SizedBox(height: 16.0),
-                      ForgotPasswordLink(
-                        onPressed: _handleForgotPassword,
-                        theme: theme,
-                      ),
-                      SizedBox(height: 16.0),
-                      LoginButtonsSection(
-                        onSignInPressed: _attemptSignIn, // Call the new method
-                        onSignUpPressed: _navigateToRegister,
-                        theme: theme,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

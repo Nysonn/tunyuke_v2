@@ -34,7 +34,7 @@ class _WelcomePageState extends State<WelcomePage>
     super.initState();
 
     _fadeController = AnimationController(
-      duration: Duration(milliseconds: 1500),
+      duration: Duration(milliseconds: 1000),
       vsync: this,
     );
 
@@ -70,45 +70,34 @@ class _WelcomePageState extends State<WelcomePage>
     // Start pulse animation for loading
     _pulseController.repeat(reverse: true);
 
-    // Check user credentials after animations start
-    _authService.authStateChanges.listen((User? user) async {
-      // Make the callback async
-      if (!_isCheckingCredentials)
-        return; // Only process if still checking initially
+    // Check authentication immediately
+    _checkAuthenticationState();
+  }
 
-      _pulseController
-          .stop(); // Stop pulse animation when auth state is determined
+  Future<void> _checkAuthenticationState() async {
+    try {
+      // Check if user is logged in via SharedPreferences first
+      final isLoggedIn = await _authService.isLoggedIn();
+      final currentUser = FirebaseAuth.instance.currentUser;
 
-      if (user == null) {
-        // User is not logged in or token expired
-        await _authService.signOut(); // Ensure SharedPreferences are cleared
+      if (isLoggedIn && currentUser != null) {
+        // User should be logged in, verify Firestore profile
+        await _handleUserNavigation(currentUser.uid);
+      } else {
+        // No valid login state, ensure clean state
+        await _authService.signOut();
         setState(() {
           _isCheckingCredentials = false;
         });
-      } else {
-        // User is logged in via Firebase Auth, now verify Firestore data using the outsourced method
-        await _handleUserNavigation(user.uid);
+        _pulseController.stop();
       }
-    });
-
-    // Initial check in case a user is already signed in (e.g. app killed)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (FirebaseAuth.instance.currentUser != null) {
-        Future.delayed(Duration(milliseconds: 1500), () {
-          // No need to call _handleUserNavigation here, the authStateChanges listener will trigger it.
-          // This delay is primarily for initial animation display.
-        });
-      } else {
-        Future.delayed(Duration(milliseconds: 2000), () {
-          if (_isCheckingCredentials) {
-            setState(() {
-              _isCheckingCredentials = false;
-            });
-            _pulseController.stop();
-          }
-        });
-      }
-    });
+    } catch (e) {
+      print("Error checking authentication state: $e");
+      setState(() {
+        _isCheckingCredentials = false;
+      });
+      _pulseController.stop();
+    }
   }
 
   // NEW: This method encapsulates the navigation logic based on profile existence.

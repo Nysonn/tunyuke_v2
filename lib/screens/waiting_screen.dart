@@ -33,19 +33,27 @@ class _WaitingScreenState extends State<WaitingScreen> {
     Clipboard.setData(ClipboardData(text: code));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("Referral code copied to clipboard!"),
+        content: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white, size: 20),
+            SizedBox(width: 8),
+            Text("Code copied to clipboard!"),
+          ],
+        ),
         backgroundColor: Colors.green[600],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         duration: Duration(seconds: 2),
       ),
     );
   }
 
-  void _confirmParticipation() {
-    _controller.confirmParticipation(widget.rideId);
+  String _formatDateTime(DateTime dateTime) {
+    return DateFormat('MMM dd, yyyy • HH:mm').format(dateTime);
   }
 
-  String _formatDateTime(DateTime dateTime) {
-    return DateFormat('MMM dd, yyyy - HH:mm').format(dateTime);
+  String _formatDate(DateTime dateTime) {
+    return DateFormat('MMM dd, yyyy').format(dateTime);
   }
 
   String _formatTime(DateTime dateTime) {
@@ -68,13 +76,13 @@ class _WaitingScreenState extends State<WaitingScreen> {
   IconData _getStatusIcon(String status) {
     switch (status.toLowerCase()) {
       case 'approved':
-        return Icons.check_circle;
+        return Icons.check_circle_rounded;
       case 'pending':
-        return Icons.pending;
+        return Icons.access_time_rounded;
       case 'cancelled':
-        return Icons.cancel;
+        return Icons.cancel_rounded;
       default:
-        return Icons.help;
+        return Icons.help_rounded;
     }
   }
 
@@ -90,7 +98,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
           backgroundColor: theme.primaryColor,
           elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+            icon: Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
             onPressed: () => Navigator.pop(context),
           ),
           title: Text(
@@ -105,28 +113,77 @@ class _WaitingScreenState extends State<WaitingScreen> {
         ),
         body: Consumer<WaitingTimeController>(
           builder: (context, controller, child) {
-            if (controller.isLoading.value && controller.rideDetails.value == null) {
-              return Center(child: CircularProgressIndicator());
-            }
-
-            if (controller.dataError.value != null) {
+            if (controller.isLoading.value &&
+                controller.rideDetails.value == null) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 48, color: Colors.red),
+                    CircularProgressIndicator(strokeWidth: 3),
                     SizedBox(height: 16),
                     Text(
-                      "Error: ${controller.dataError.value}",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.red),
-                    ),
-                    SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => controller.fetchRideDetails(widget.rideId),
-                      child: Text("Retry"),
+                      "Loading ride details...",
+                      style: TextStyle(color: Colors.grey[600], fontSize: 16),
                     ),
                   ],
+                ),
+              );
+            }
+
+            if (controller.dataError.value != null) {
+              return Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.red[50],
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.error_outline_rounded,
+                          size: 48,
+                          color: Colors.red[400],
+                        ),
+                      ),
+                      SizedBox(height: 24),
+                      Text(
+                        "Something went wrong",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        controller.dataError.value!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                      ),
+                      SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: () =>
+                            controller.fetchRideDetails(widget.rideId),
+                        icon: Icon(Icons.refresh_rounded, size: 20),
+                        label: Text("Try Again"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: theme.primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
@@ -134,133 +191,94 @@ class _WaitingScreenState extends State<WaitingScreen> {
             final rideDetails = controller.rideDetails.value;
             if (rideDetails == null) {
               return Center(
-                child: Text("No ride details available"),
+                child: Text(
+                  "No ride details available",
+                  style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                ),
               );
             }
 
-            return SingleChildScrollView(
-              padding: EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Status Card
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
+            return RefreshIndicator(
+              onRefresh: () => controller.refreshRideDetails(widget.rideId),
+              child: SingleChildScrollView(
+                physics: AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    // Main Status Section
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(32),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
                       child: Column(
                         children: [
-                          Icon(
-                            _getStatusIcon(rideDetails.status),
-                            size: 48,
-                            color: _getStatusColor(rideDetails.status),
+                          Container(
+                            padding: EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: _getStatusColor(
+                                rideDetails.status,
+                              ).withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              _getStatusIcon(rideDetails.status),
+                              size: 48,
+                              color: _getStatusColor(rideDetails.status),
+                            ),
                           ),
-                          SizedBox(height: 12),
+                          SizedBox(height: 16),
                           Text(
                             rideDetails.status.toUpperCase(),
                             style: TextStyle(
                               fontSize: 24,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w700,
                               color: _getStatusColor(rideDetails.status),
+                              letterSpacing: 1,
                             ),
                           ),
                           SizedBox(height: 8),
                           Text(
                             rideDetails.status.toLowerCase() == 'pending'
-                                ? "Waiting for all participants to confirm"
+                                ? "Waiting for more participants"
                                 : rideDetails.status.toLowerCase() == 'approved'
-                                    ? "Your ride has been approved!"
-                                    : "Ride status: ${rideDetails.status}",
+                                ? "Your ride is confirmed!"
+                                : "Status: ${rideDetails.status}",
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 16),
-
-                  // Referral Code Card
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Referral Code",
-                            style: TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey[700],
-                            ),
-                          ),
-                          SizedBox(height: 12),
-                          Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: theme.primaryColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: theme.primaryColor.withOpacity(0.3),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  rideDetails.referralCode,
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.w600,
-                                    color: theme.primaryColor,
-                                    letterSpacing: 2,
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () => _copyReferralCode(rideDetails.referralCode),
-                                  icon: Icon(
-                                    Icons.copy,
-                                    color: theme.primaryColor,
-                                  ),
-                                  tooltip: "Copy code",
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            "Share this code with your group members",
-                            style: TextStyle(
-                              fontSize: 12,
                               color: Colors.grey[600],
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  SizedBox(height: 16),
+                    SizedBox(height: 20),
 
-                  // Participants Card
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
+                    // Participants Progress
+                    Container(
+                      width: double.infinity,
                       padding: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -270,136 +288,299 @@ class _WaitingScreenState extends State<WaitingScreen> {
                               Text(
                                 "Participants",
                                 style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey[700],
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey[800],
                                 ),
                               ),
                               Container(
-                                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: theme.primaryColor,
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
                                   "${rideDetails.participants.length}/${rideDetails.seats}",
                                   style: TextStyle(
                                     color: Colors.white,
-                                    fontWeight: FontWeight.w500,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
                                   ),
                                 ),
                               ),
                             ],
                           ),
                           SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Icon(Icons.people, color: Colors.green, size: 20),
-                              SizedBox(width: 8),
-                              Text(
-                                "Confirmed: ${controller.confirmedParticipantsCount}/${rideDetails.participants.length}",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.green[700],
+
+                          // Progress Bar
+                          Container(
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: FractionallySizedBox(
+                              alignment: Alignment.centerLeft,
+                              widthFactor:
+                                  rideDetails.participants.length /
+                                  rideDetails.seats,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: theme.primaryColor,
+                                  borderRadius: BorderRadius.circular(4),
                                 ),
                               ),
-                            ],
-                          ),
-                          if (rideDetails.participants.length < rideDetails.seats) ...[
-                            SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(Icons.person_add, color: Colors.orange, size: 20),
-                                SizedBox(width: 8),
-                                Text(
-                                  "Waiting for ${rideDetails.seats - rideDetails.participants.length} more participants",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.orange[700],
-                                  ),
-                                ),
-                              ],
                             ),
-                          ],
+                          ),
+                          SizedBox(height: 16),
+
+                          if (rideDetails.participants.length <
+                              rideDetails.seats)
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.orange[50],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.person_add_rounded,
+                                    color: Colors.orange[600],
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      "Need ${rideDetails.seats - rideDetails.participants.length} more passenger${rideDetails.seats - rideDetails.participants.length == 1 ? '' : 's'}",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.orange[700],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.green[50],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.check_circle_rounded,
+                                    color: Colors.green[600],
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      "All seats filled! Ride will be approved soon.",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.green[700],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                         ],
                       ),
                     ),
-                  ),
-                  SizedBox(height: 16),
+                    SizedBox(height: 20),
 
-                  // Trip Details Card
-                  Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
+                    // Referral Code
+                    Container(
+                      width: double.infinity,
                       padding: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Share Code",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                          SizedBox(height: 16),
+                          GestureDetector(
+                            onTap: () =>
+                                _copyReferralCode(rideDetails.referralCode),
+                            child: Container(
+                              width: double.infinity,
+                              padding: EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    theme.primaryColor.withOpacity(0.1),
+                                    theme.primaryColor.withOpacity(0.05),
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: theme.primaryColor.withOpacity(0.2),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    rideDetails.referralCode,
+                                    style: TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.w700,
+                                      color: theme.primaryColor,
+                                      letterSpacing: 4,
+                                    ),
+                                  ),
+                                  SizedBox(width: 16),
+                                  Icon(
+                                    Icons.copy_rounded,
+                                    color: theme.primaryColor,
+                                    size: 24,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 12),
+                          Text(
+                            "Tap to copy • Share with your group members",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[500],
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 20),
+
+                    // Trip Details
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            blurRadius: 10,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             "Trip Details",
                             style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey[700],
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[800],
                             ),
                           ),
-                          SizedBox(height: 16),
-                          
-                          // Pickup Location
+                          SizedBox(height: 20),
+
+                          // Route
                           Row(
                             children: [
-                              Icon(Icons.location_on, color: Colors.blue, size: 20),
-                              SizedBox(width: 12),
+                              Column(
+                                children: [
+                                  Container(
+                                    padding: EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue[50],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      Icons.location_on_rounded,
+                                      color: Colors.blue[600],
+                                      size: 20,
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 2,
+                                    height: 24,
+                                    color: Colors.grey[300],
+                                  ),
+                                  Container(
+                                    padding: EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red[50],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      Icons.flag_rounded,
+                                      color: Colors.red[600],
+                                      size: 20,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(width: 16),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Text(
+                                      rideDetails.pickupName,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey[800],
+                                      ),
+                                    ),
+                                    SizedBox(height: 8),
                                     Text(
                                       "Pickup Location",
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: Colors.grey[600],
+                                        color: Colors.grey[500],
                                       ),
                                     ),
+                                    SizedBox(height: 20),
                                     Text(
-                                      rideDetails.pickupName,
+                                      rideDetails.destName,
                                       style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey[800],
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 16),
-                          
-                          // Destination
-                          Row(
-                            children: [
-                              Icon(Icons.flag, color: Colors.red, size: 20),
-                              SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
+                                    SizedBox(height: 8),
                                     Text(
                                       "Destination",
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                    Text(
-                                      rideDetails.destName,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey[500],
                                       ),
                                     ),
                                   ],
@@ -407,59 +588,97 @@ class _WaitingScreenState extends State<WaitingScreen> {
                               ),
                             ],
                           ),
-                          SizedBox(height: 16),
-                          
-                          // Pickup Time
+                          SizedBox(height: 20),
+
+                          Divider(color: Colors.grey[200]),
+                          SizedBox(height: 20),
+
+                          // Time Info
                           Row(
                             children: [
-                              Icon(Icons.schedule, color: Colors.green, size: 20),
-                              SizedBox(width: 12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.schedule_rounded,
+                                          color: Colors.green[600],
+                                          size: 16,
+                                        ),
+                                        SizedBox(width: 6),
+                                        Text(
+                                          "Departure",
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[500],
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: 4),
                                     Text(
-                                      "Pickup Time",
+                                      _formatTime(rideDetails.scheduledAt),
                                       style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey[800],
                                       ),
                                     ),
                                     Text(
-                                      _formatDateTime(rideDetails.scheduledAt),
+                                      _formatDate(rideDetails.scheduledAt),
                                       style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
+                                        fontSize: 13,
+                                        color: Colors.grey[600],
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ],
-                          ),
-                          SizedBox(height: 16),
-                          
-                          // Created Time
-                          Row(
-                            children: [
-                              Icon(Icons.access_time, color: Colors.grey, size: 20),
-                              SizedBox(width: 12),
+                              Container(
+                                width: 1,
+                                height: 40,
+                                color: Colors.grey[200],
+                              ),
+                              SizedBox(width: 16),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.access_time_rounded,
+                                          color: Colors.grey[500],
+                                          size: 16,
+                                        ),
+                                        SizedBox(width: 6),
+                                        Text(
+                                          "Created",
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[500],
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: 4),
                                     Text(
-                                      "Ride Created",
+                                      _formatTime(rideDetails.createdAt),
                                       style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey[800],
                                       ),
                                     ),
                                     Text(
-                                      _formatDateTime(rideDetails.createdAt),
+                                      _formatDate(rideDetails.createdAt),
                                       style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
+                                        fontSize: 13,
+                                        color: Colors.grey[600],
                                       ),
                                     ),
                                   ],
@@ -470,67 +689,9 @@ class _WaitingScreenState extends State<WaitingScreen> {
                         ],
                       ),
                     ),
-                  ),
-                  SizedBox(height: 24),
-
-                  // Confirm Participation Button
-                  if (!controller.currentUserConfirmed && 
-                      rideDetails.status.toLowerCase() == 'pending')
-                    SizedBox(
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: controller.isLoading.value 
-                            ? null 
-                            : _confirmParticipation,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green[600],
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: controller.isLoading.value
-                            ? CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                              )
-                            : Text(
-                                "Confirm My Participation",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
-                      ),
-                    ),
-
-                  // Already Confirmed Message
-                  if (controller.currentUserConfirmed)
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.green[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.green[300]!),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.check_circle, color: Colors.green[600]),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              "You have confirmed your participation",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.green[700],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
+                    SizedBox(height: 24),
+                  ],
+                ),
               ),
             );
           },

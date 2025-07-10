@@ -95,8 +95,10 @@ class DashboardController extends ChangeNotifier {
 
   DashboardController() {
     _initializeGreeting();
-    _fetchUserNameFromFirebase();
-    _initializeLocationAndMapData();
+    // Fetch user name first, then initialize location
+    _fetchUserNameFromFirebase().then((_) {
+      _initializeLocationAndMapData();
+    });
   }
 
   void _initializeGreeting() {
@@ -126,21 +128,20 @@ class DashboardController extends ChangeNotifier {
             _userName.value = "User";
           }
         } else {
-          _userName.value = "New User";
+          // This should be "Guest" or the user's email, not "New User"
+          _userName.value = user.email?.split('@')[0] ?? "Guest";
         }
       } catch (e) {
         print("Error fetching user name from Firestore: $e");
-        // Check if disposed before updating
         if (_isDisposed) return;
-        _userName.value = "Error User";
+        // Fallback to email username or "Guest"
+        _userName.value = user.email?.split('@')[0] ?? "Guest";
       }
     } else {
-      // Check if disposed before updating
       if (_isDisposed) return;
       _userName.value = "Guest";
     }
 
-    // Only notify listeners if not disposed
     if (!_isDisposed) {
       notifyListeners();
     }
@@ -478,15 +479,18 @@ class DashboardController extends ChangeNotifier {
   }
 
   void onBottomNavItemTapped(int index, BuildContext context) {
-    _currentIndex.value = index;
-    notifyListeners();
+    // Don't update currentIndex when navigating to other screens
+    // Only update it when staying on dashboard or returning to dashboard
 
     switch (index) {
       case 0:
-        // Stay on dashboard - no navigation needed
+        // Stay on dashboard - update index
+        _currentIndex.value = 0;
+        notifyListeners();
         break;
       case 1:
-        // Navigate to rides screen with the provider context (Solution 1)
+        // Navigate to rides screen - don't update currentIndex
+        // Keep it at 0 so dashboard remains highlighted when we return
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -498,11 +502,11 @@ class DashboardController extends ChangeNotifier {
         );
         break;
       case 2:
-        // Navigate to profile
+        // Navigate to profile - don't update currentIndex
         Navigator.pushNamed(context, '/profile');
         break;
       case 3:
-        // Navigate to notifications
+        // Navigate to notifications - don't update currentIndex
         Navigator.pushNamed(context, '/notifications');
         break;
     }

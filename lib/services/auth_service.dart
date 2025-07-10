@@ -1,4 +1,3 @@
-// lib/services/auth_service.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -108,9 +107,33 @@ class AuthService {
     try {
       await _auth.signOut();
       await _saveLoginState(false, null); // Clear login state on logout
-      print("User signed out and login state cleared.");
+
+      // Also clear any cached user data
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear(); // This clears all stored preferences
+
+      print("User signed out and all preferences cleared.");
     } catch (e) {
       throw Exception('Error signing out: $e');
+    }
+  }
+
+  // Add method to check if authentication is valid
+  Future<bool> isAuthenticationValid() async {
+    try {
+      final isLoggedIn = await this.isLoggedIn();
+      final currentUser = _auth.currentUser;
+
+      if (!isLoggedIn || currentUser == null) {
+        return false;
+      }
+
+      // Verify the user's token is still valid
+      await currentUser.reload();
+      return FirebaseAuth.instance.currentUser != null;
+    } catch (e) {
+      print("Authentication validation failed: $e");
+      return false;
     }
   }
 

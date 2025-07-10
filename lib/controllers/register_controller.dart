@@ -1,44 +1,56 @@
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:Tunyuke/services/auth_service.dart';
 
 enum SignUpResult { success, error }
 
-class RegisterController {
-  final AuthService _authService;
-  // Change callbacks to return a result or just indicate success/failure
-  final Function(String message) onSignUpSuccess;
-  final Function(String message) onSignUpError;
-  // Removed onNavigateToLogin from controller's direct responsibility
+class RegisterController extends ChangeNotifier {
+  final AuthService _authService = AuthService();
 
-  RegisterController({
-    required AuthService authService,
-    required this.onSignUpSuccess,
-    required this.onSignUpError,
-  }) : _authService = authService;
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
+
+  bool _signUpSuccess = false;
+  bool get signUpSuccess => _signUpSuccess;
 
   Future<void> signUp({
     required String email,
     required String username,
     required String password,
   }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    _signUpSuccess = false;
+    notifyListeners();
     try {
       await _authService.signUpWithEmailAndPassword(email, password, username);
-      onSignUpSuccess("User signed up successfully!");
-      // Don't navigate here. The UI (RegisterScreen) will handle navigation
-      // after it receives the success callback.
+      _signUpSuccess = true;
+      _errorMessage = null;
     } on FirebaseAuthException catch (e) {
-      String message;
       if (e.code == 'weak-password') {
-        message = 'The password provided is too weak.';
+        _errorMessage = 'The password provided is too weak.';
       } else if (e.code == 'email-already-in-use') {
-        message = 'The account already exists for that email.';
+        _errorMessage = 'The account already exists for that email.';
       } else {
-        message = 'An error occurred during sign up: ${e.message}';
+        _errorMessage = 'An error occurred during sign up:  e.message}';
       }
-      onSignUpError(message);
+      _signUpSuccess = false;
     } catch (e) {
-      onSignUpError('An unexpected error occurred. Please try again.');
-      print("Unexpected error during sign up in RegisterController: $e");
+      _errorMessage = 'An unexpected error occurred. Please try again.';
+      _signUpSuccess = false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
+  }
+
+  void reset() {
+    _isLoading = false;
+    _errorMessage = null;
+    _signUpSuccess = false;
+    notifyListeners();
   }
 }
