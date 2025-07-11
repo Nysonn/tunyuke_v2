@@ -50,7 +50,7 @@ class _RidesScreenState extends State<RidesScreen> {
       case 'approved':
         return Icons.check_circle;
       case 'pending':
-        return Icons.pending;
+        return Icons.access_time;
       case 'cancelled':
         return Icons.cancel;
       default:
@@ -58,46 +58,43 @@ class _RidesScreenState extends State<RidesScreen> {
     }
   }
 
-  String _formatDateTime(DateTime dateTime) {
-    return DateFormat('MMM dd, yyyy - HH:mm').format(dateTime);
-  }
-
   String _formatTime(DateTime dateTime) {
     return DateFormat('HH:mm').format(dateTime);
   }
 
-  String _getTimeUntilRide(DateTime scheduledAt) {
+  String _formatDate(DateTime dateTime) {
+    return DateFormat('MMM dd').format(dateTime);
+  }
+
+  String _getTimeStatus(DateTime scheduledAt) {
     final now = DateTime.now();
     final difference = scheduledAt.difference(now);
 
     if (difference.isNegative) {
-      final pastDifference = now.difference(scheduledAt);
-      if (pastDifference.inDays > 0) {
-        return "${pastDifference.inDays} days ago";
-      } else if (pastDifference.inHours > 0) {
-        return "${pastDifference.inHours} hours ago";
-      } else {
-        return "${pastDifference.inMinutes} minutes ago";
-      }
+      return "Completed";
     } else {
       if (difference.inDays > 0) {
-        return "in ${difference.inDays} days";
+        return "${difference.inDays}d";
       } else if (difference.inHours > 0) {
-        return "in ${difference.inHours} hours";
+        return "${difference.inHours}h";
       } else {
-        return "in ${difference.inMinutes} minutes";
+        return "${difference.inMinutes}m";
       }
     }
+  }
+
+  // Helper method to truncate long text
+  String _truncateText(String text, int maxLength) {
+    if (text.length <= maxLength) return text;
+    return '${text.substring(0, maxLength)}...';
   }
 
   Widget _buildRideCard(UserRide ride) {
     final theme = Theme.of(context);
     final isUpcoming = ride.scheduledAt.isAfter(DateTime.now());
 
-    return Card(
-      elevation: 2,
-      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       child: InkWell(
         onTap: () {
           Navigator.push(
@@ -107,281 +104,172 @@ class _RidesScreenState extends State<RidesScreen> {
             ),
           );
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         child: Padding(
-          padding: EdgeInsets.all(20),
-          child: Column(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with status and time info
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(ride.status).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _getStatusIcon(ride.status),
-                          color: _getStatusColor(ride.status),
-                          size: 16,
-                        ),
-                        SizedBox(width: 6),
-                        Text(
-                          ride.status.toUpperCase(),
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: _getStatusColor(ride.status),
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: isUpcoming
-                          ? theme.primaryColor.withOpacity(0.1)
-                          : Colors.grey.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      _getTimeUntilRide(ride.scheduledAt),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isUpcoming
-                            ? theme.primaryColor
-                            : Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-
-              // Route information
+              // Status icon
               Container(
-                padding: EdgeInsets.all(16),
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(8),
+                  color: _getStatusColor(ride.status).withOpacity(0.1),
+                  shape: BoxShape.circle,
                 ),
+                child: Icon(
+                  _getStatusIcon(ride.status),
+                  color: _getStatusColor(ride.status),
+                  size: 20,
+                ),
+              ),
+              SizedBox(width: 12),
+
+              // Main content - takes all remaining space
+              Expanded(
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Header row with date
                     Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            Icons.location_on,
-                            color: Colors.blue,
-                            size: 20,
-                          ),
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Pickup Point",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text(
-                                ride.pickupName,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey[800],
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(Icons.flag, color: Colors.red, size: 20),
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "Destination",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              Text(
-                                ride.destName,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey[800],
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 16),
-
-              // Ride details row
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: theme.primaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.people,
-                            color: theme.primaryColor,
-                            size: 20,
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            "${ride.participantsCount}/${ride.seats}",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: theme.primaryColor,
-                            ),
-                          ),
-                          Text(
-                            "Passengers",
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Container(
-                      padding: EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        children: [
-                          Icon(
-                            Icons.schedule,
-                            color: Colors.amber[700],
-                            size: 20,
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            _formatTime(ride.scheduledAt),
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.amber[700],
-                            ),
-                          ),
-                          Text(
-                            "Time",
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-
-              // Bottom section with date and referral code
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Scheduled Date",
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.w500,
+                        // Route info with better text handling
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // From location
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.radio_button_unchecked,
+                                    size: 12,
+                                    color: Colors.grey[600],
+                                  ),
+                                  SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      _truncateText(ride.pickupName, 20),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey[800],
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 2),
+                              // To location
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.location_on,
+                                    size: 12,
+                                    color: theme.primaryColor,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      _truncateText(ride.destName, 20),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey[800],
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                        SizedBox(height: 2),
-                        Text(
-                          DateFormat('MMM dd, yyyy').format(ride.scheduledAt),
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[800],
-                          ),
+                        // Date and time status
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              _formatDate(ride.scheduledAt),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isUpcoming
+                                    ? theme.primaryColor.withOpacity(0.1)
+                                    : Colors.grey.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                _getTimeStatus(ride.scheduledAt),
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: isUpcoming
+                                      ? theme.primaryColor
+                                      : Colors.grey[600],
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    SizedBox(height: 8),
+
+                    // Bottom row with time, passengers, and referral code
+                    Row(
                       children: [
-                        Text(
-                          "Referral Code",
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: 2),
+                        // Time
                         Container(
                           padding: EdgeInsets.symmetric(
-                            horizontal: 8,
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            _formatTime(ride.scheduledAt),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 8),
+
+                        // Passengers
+                        Icon(Icons.people, size: 14, color: Colors.grey[600]),
+                        SizedBox(width: 4),
+                        Text(
+                          "${ride.participantsCount}/${ride.seats}",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+
+                        Spacer(),
+
+                        // Referral code
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 6,
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
@@ -391,10 +279,10 @@ class _RidesScreenState extends State<RidesScreen> {
                           child: Text(
                             ride.referralCode,
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: 11,
                               fontWeight: FontWeight.w700,
                               color: theme.primaryColor,
-                              letterSpacing: 1,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ),
@@ -475,9 +363,15 @@ class _RidesScreenState extends State<RidesScreen> {
           await _controller!.refreshRides();
         }
       },
-      child: ListView.builder(
+      child: ListView.separated(
         padding: EdgeInsets.symmetric(vertical: 16),
         itemCount: rides.length,
+        separatorBuilder: (context, index) => Divider(
+          height: 1,
+          indent: 68,
+          endIndent: 20,
+          color: Colors.grey[200],
+        ),
         itemBuilder: (context, index) => _buildRideCard(rides[index]),
       ),
     );
@@ -537,7 +431,7 @@ class _RidesScreenState extends State<RidesScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: theme.primaryColor,
         elevation: 0,

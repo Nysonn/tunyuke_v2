@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:Tunyuke/components/welcome_screen/welcome_action_buttons.dart';
 import 'package:Tunyuke/components/welcome_screen/welcome_feature_icons.dart';
 import 'package:Tunyuke/components/welcome_screen/welcome_loading_section.dart';
@@ -27,12 +28,24 @@ class _WelcomePageState extends State<WelcomePage>
 
   bool _isCheckingCredentials = true;
 
-  final AuthService _authService = AuthService(); // Instantiate AuthService
-
   @override
   void initState() {
     super.initState();
+    _initializeAnimations();
+    _startAnimations();
+  }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Check authentication after the build phase is complete
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAuthenticationState();
+    });
+  }
+
+  void _initializeAnimations() {
     _fadeController = AnimationController(
       duration: Duration(milliseconds: 1000),
       vsync: this,
@@ -60,53 +73,97 @@ class _WelcomePageState extends State<WelcomePage>
     _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+  }
 
-    // Start animations
+  void _startAnimations() {
     _fadeController.forward();
     Future.delayed(Duration(milliseconds: 300), () {
-      _slideController.forward();
+      if (mounted) _slideController.forward();
     });
-
-    // Start pulse animation for loading
     _pulseController.repeat(reverse: true);
-
-    // Check authentication immediately
-    _checkAuthenticationState();
   }
 
   Future<void> _checkAuthenticationState() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+
     try {
-      // Check if user is logged in via SharedPreferences first
-      final isLoggedIn = await _authService.isLoggedIn();
+      print("🔍 Checking authentication state...");
+
+      // Check SharedPreferences first
+      final isLoggedIn = await authService.isLoggedIn();
+      final savedUid = await authService.getCurrentUserUid();
       final currentUser = FirebaseAuth.instance.currentUser;
 
-      if (isLoggedIn && currentUser != null) {
-        // User should be logged in, verify Firestore profile
-        await _handleUserNavigation(currentUser.uid);
+      print(
+        "📱 SharedPreferences - isLoggedIn: $isLoggedIn, savedUid: $savedUid",
+      );
+      print("🔥 Firebase Auth - currentUser: ${currentUser?.uid}");
+
+      if (isLoggedIn && savedUid != null) {
+        // User should be logged in according to SharedPreferences
+        if (currentUser != null && currentUser.uid == savedUid) {
+          print("✅ Valid authentication state - navigating to app");
+          await _handleUserNavigation(currentUser.uid, authService);
+        } else if (currentUser == null) {
+          print(
+            "⚠️ SharedPreferences indicates login but no Firebase user - attempting silent refresh",
+          );
+          // Try to restore Firebase session
+          await FirebaseAuth.instance.authStateChanges().first;
+          final refreshedUser = FirebaseAuth.instance.currentUser;
+
+          if (refreshedUser != null && refreshedUser.uid == savedUid) {
+            print("✅ Firebase session restored - navigating to app");
+            await _handleUserNavigation(refreshedUser.uid, authService);
+          } else {
+            print(
+              "❌ Could not restore Firebase session - clearing login state",
+            );
+            await _clearInvalidSession(authService);
+          }
+        } else {
+          print("❌ UID mismatch - clearing invalid session");
+          await _clearInvalidSession(authService);
+        }
+      } else if (currentUser != null) {
+        print("⚠️ Firebase user exists but no SharedPreferences login state");
+        // Firebase user exists but SharedPreferences doesn't indicate login
+        // This could happen if the app was uninstalled/reinstalled
+        await _handleUserNavigation(currentUser.uid, authService);
       } else {
-        // No valid login state, ensure clean state
-        await _authService.signOut();
-        setState(() {
-          _isCheckingCredentials = false;
-        });
-        _pulseController.stop();
+        print("ℹ️ No authentication found - showing welcome screen");
+        await _showWelcomeScreen();
       }
     } catch (e) {
-      print("Error checking authentication state: $e");
-      setState(() {
-        _isCheckingCredentials = false;
-      });
-      _pulseController.stop();
+      print("❌ Error checking authentication state: $e");
+      await _showWelcomeScreen();
     }
   }
 
-  // NEW: This method encapsulates the navigation logic based on profile existence.
-  Future<void> _handleUserNavigation(String uid) async {
+  Future<void> _handleUserNavigation(
+    String uid,
+    AuthService authService,
+  ) async {
     try {
-      final profileExists = await _authService.checkFirestoreProfileExists(uid);
+      print("🔍 Checking Firestore profile for UID: $uid");
+
+      // Verify the user's authentication is still valid
+      final isAuthValid = await authService.isAuthenticationValid();
+      if (!isAuthValid) {
+        print("❌ Authentication is no longer valid");
+        await _clearInvalidSession(authService);
+        return;
+      }
+
+      final profileExists = await authService.checkFirestoreProfileExists(uid);
+      print("📄 Firestore profile exists: $profileExists");
 
       if (profileExists) {
-        await Future.delayed(Duration(milliseconds: 800)); // Smooth transition
+        // Update login state to ensure consistency
+        await authService.saveLoginState(true, uid);
+
+        print("🏠 Navigating to Dashboard");
+        await Future.delayed(Duration(milliseconds: 800));
         if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
@@ -115,8 +172,8 @@ class _WelcomePageState extends State<WelcomePage>
           );
         }
       } else {
-        // Firebase Auth user exists, but no Firestore profile document
-        await Future.delayed(Duration(milliseconds: 1500)); // Smooth transition
+        print("📝 Profile doesn't exist - navigating to registration");
+        await Future.delayed(Duration(milliseconds: 800));
         if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
@@ -126,12 +183,27 @@ class _WelcomePageState extends State<WelcomePage>
         }
       }
     } catch (e) {
-      print("Error during user navigation process: $e");
+      print("❌ Error during user navigation: $e");
+      await _clearInvalidSession(authService);
+    }
+  }
+
+  Future<void> _clearInvalidSession(AuthService authService) async {
+    try {
+      print("🧹 Clearing invalid session");
+      await authService.signOut();
+      await _showWelcomeScreen();
+    } catch (e) {
+      print("❌ Error clearing session: $e");
+      await _showWelcomeScreen();
+    }
+  }
+
+  Future<void> _showWelcomeScreen() async {
+    if (mounted) {
       setState(() {
         _isCheckingCredentials = false;
       });
-      await _authService
-          .signOut(); // Clear shared_preferences if an error occurs
       _pulseController.stop();
     }
   }

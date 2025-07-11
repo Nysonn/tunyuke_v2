@@ -125,17 +125,18 @@ class DashboardController extends ChangeNotifier {
           if (fetchedName != null && fetchedName.isNotEmpty) {
             _userName.value = fetchedName;
           } else {
-            _userName.value = "User";
+            // Try to get displayName from Firebase Auth if username is empty
+            _userName.value = user.displayName ?? "User";
           }
         } else {
-          // This should be "Guest" or the user's email, not "New User"
-          _userName.value = user.email?.split('@')[0] ?? "Guest";
+          // Document doesn't exist, try to get displayName from Firebase Auth
+          _userName.value = user.displayName ?? "User";
         }
       } catch (e) {
         print("Error fetching user name from Firestore: $e");
         if (_isDisposed) return;
-        // Fallback to email username or "Guest"
-        _userName.value = user.email?.split('@')[0] ?? "Guest";
+        // Fallback to displayName from Firebase Auth, not email
+        _userName.value = user.displayName ?? "User";
       }
     } else {
       if (_isDisposed) return;

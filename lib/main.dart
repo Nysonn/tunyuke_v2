@@ -22,6 +22,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:Tunyuke/controllers/login_controller.dart';
 import 'package:Tunyuke/controllers/register_controller.dart';
 import 'package:Tunyuke/controllers/profile_screen_controller.dart';
+import 'package:Tunyuke/services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,7 +38,6 @@ void main() async {
   void fetchAndLogFCMToken() async {
     String? token = await FirebaseMessaging.instance.getToken();
     print('🔥 FCM registration token: $token');
-    // You can also store this locally or send it directly to your backend here
   }
 
   // Fetch and log the token
@@ -46,18 +46,23 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        // Wrap MyApp with MultiProvider to provide multiple controllers
+        // Create a global AuthService instance
+        Provider<AuthService>(create: (context) => AuthService()),
+
+        // All controllers with proper global state management
         ChangeNotifierProvider(create: (context) => DashboardController()),
         ChangeNotifierProvider(create: (context) => ToCampusController()),
         ChangeNotifierProvider(
           create: (context) => ScheduleTeamRideController(),
         ),
-        ChangeNotifierProvider(create: (context) => WaitingTimeController()),
         ChangeNotifierProvider(create: (context) => OnboardingController()),
         ChangeNotifierProvider(create: (context) => RidesController()),
         ChangeNotifierProvider(create: (context) => LoginController()),
         ChangeNotifierProvider(create: (context) => RegisterController()),
         ChangeNotifierProvider(create: (context) => ProfileScreenController()),
+
+        // Create WaitingTimeController as a factory since it needs ride-specific data
+        ChangeNotifierProvider.value(value: WaitingTimeController()),
       ],
       child: const MyApp(),
     ),

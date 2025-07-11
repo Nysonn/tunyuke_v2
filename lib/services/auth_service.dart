@@ -35,7 +35,10 @@ class AuthService {
         });
 
         // Save login state after successful sign up
-        await _saveLoginState(true, userCredential.user!.uid);
+        await saveLoginState(
+          true,
+          userCredential.user!.uid,
+        ); // Remove underscore
       }
       return userCredential;
     } on FirebaseAuthException catch (e) {
@@ -58,7 +61,10 @@ class AuthService {
 
       // Save login state after successful sign in
       if (userCredential.user != null) {
-        await _saveLoginState(true, userCredential.user!.uid);
+        await saveLoginState(
+          true,
+          userCredential.user!.uid,
+        ); // Remove underscore
       }
       return userCredential;
     } on FirebaseAuthException catch (e) {
@@ -82,7 +88,7 @@ class AuthService {
 
   // --- Shared Preferences Management ---
 
-  Future<void> _saveLoginState(bool isLoggedIn, String? uid) async {
+  Future<void> saveLoginState(bool isLoggedIn, String? uid) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_kLoggedInKey, isLoggedIn);
     if (isLoggedIn && uid != null) {
@@ -106,7 +112,7 @@ class AuthService {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
-      await _saveLoginState(false, null); // Clear login state on logout
+      await saveLoginState(false, null); // Remove underscore
 
       // Also clear any cached user data
       final prefs = await SharedPreferences.getInstance();
