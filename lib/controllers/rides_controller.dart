@@ -47,6 +47,7 @@ class UserRide {
   });
 
   factory UserRide.fromJson(Map<String, dynamic> json) {
+    // Handle null participants safely
     var participantsList = json['participants'] as List<dynamic>? ?? [];
 
     return UserRide(
@@ -75,7 +76,7 @@ class UserRide {
 class RidesController extends ChangeNotifier {
   bool _isDisposed = false;
 
-  final String _backendBaseUrl = 'http://192.168.241.24:8080';
+  final String _backendBaseUrl = 'http://192.168.78.23:8080';
 
   final ValueNotifier<List<UserRide>> _userRides =
       ValueNotifier<List<UserRide>>([]);
@@ -87,9 +88,20 @@ class RidesController extends ChangeNotifier {
   final ValueNotifier<String?> _dataError = ValueNotifier<String?>(null);
   ValueNotifier<String?> get dataError => _dataError;
 
+  // Add error type for better fallback handling
+  final ValueNotifier<String?> _errorType = ValueNotifier<String?>(null);
+  ValueNotifier<String?> get errorType => _errorType;
+
   Timer? _refreshTimer;
 
   RidesController();
+
+  // Retry function for fallback screen
+  Future<void> retryFetchUserRides() async {
+    _dataError.value = null;
+    _errorType.value = null;
+    await fetchUserRides();
+  }
 
   // Initialize and fetch user rides
   Future<void> initialize() async {
@@ -106,18 +118,15 @@ class RidesController extends ChangeNotifier {
 
     _isLoading.value = true;
     _dataError.value = null;
-
-    // Only call notifyListeners if we're not in the middle of a build
-    if (WidgetsBinding.instance.schedulerPhase !=
-        SchedulerPhase.persistentCallbacks) {
-      notifyListeners();
-    }
+    _errorType.value = null;
+    _safeNotifyListeners();
 
     try {
       final String? authToken = await FirebaseAuth.instance.currentUser
           ?.getIdToken();
       if (authToken == null) {
         _dataError.value = "User not authenticated. Please log in.";
+        _errorType.value = "auth";
         _isLoading.value = false;
         _safeNotifyListeners();
         return;
@@ -136,30 +145,36 @@ class RidesController extends ChangeNotifier {
       if (response.statusCode == 200) {
         final List<dynamic> responseData = json.decode(response.body);
         _userRides.value = responseData
-            .map((json) => UserRide.fromJson(json as Map<String, dynamic>))
+            .map((rideJson) => UserRide.fromJson(rideJson))
             .toList();
-
-        // Sort rides by creation date (newest first)
-        _userRides.value.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
         _dataError.value = null;
-        print(
-          "User rides fetched successfully: ${_userRides.value.length} rides",
-        );
+        _errorType.value = null;
       } else if (response.statusCode == 404) {
-        // No rides found
         _userRides.value = [];
         _dataError.value = null;
-        print("No rides found for user");
+        _errorType.value = null;
+      } else if (response.statusCode == 401) {
+        _dataError.value = "Authentication failed. Please log in again.";
+        _errorType.value = "auth";
+      } else if (response.statusCode >= 500) {
+        _dataError.value = "Server error. Please try again later.";
+        _errorType.value = "server";
       } else {
-        _dataError.value =
-            "Failed to load rides: ${response.statusCode} - ${response.body}";
-        print("Backend error fetching user rides: ${response.body}");
+        _dataError.value = "Failed to load rides. Please try again.";
+        _errorType.value = "unknown";
       }
     } catch (e) {
       if (_isDisposed) return;
-      _dataError.value = "Network error fetching rides: $e";
-      print("Network error fetching user rides: $e");
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('TimeoutException') ||
+          e.toString().contains('HandshakeException')) {
+        _dataError.value =
+            "Network connection failed. Please check your internet connection.";
+        _errorType.value = "network";
+      } else {
+        _dataError.value = "Network error loading rides.";
+        _errorType.value = "network";
+      }
     } finally {
       if (_isDisposed) return;
       _isLoading.value = false;

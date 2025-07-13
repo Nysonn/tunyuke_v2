@@ -106,7 +106,7 @@ class RideDetails {
 class WaitingTimeController extends ChangeNotifier {
   bool _isDisposed = false;
 
-  final String _backendBaseUrl = 'http://192.168.241.24:8080';
+  final String _backendBaseUrl = 'http://192.168.78.23:8080';
 
   final ValueNotifier<RideDetails?> _rideDetails = ValueNotifier<RideDetails?>(
     null,
@@ -119,13 +119,29 @@ class WaitingTimeController extends ChangeNotifier {
   final ValueNotifier<String?> _dataError = ValueNotifier<String?>(null);
   ValueNotifier<String?> get dataError => _dataError;
 
+  // Add error type for better fallback handling
+  final ValueNotifier<String?> _errorType = ValueNotifier<String?>(null);
+  ValueNotifier<String?> get errorType => _errorType;
+
   Timer? _refreshTimer;
+  String? _currentRideId;
 
   WaitingTimeController();
 
-  // Initialize the controller with a ride ID
+  // Retry function for fallback screen
+  Future<void> retryFetchRideDetails() async {
+    if (_currentRideId != null) {
+      _dataError.value = null;
+      _errorType.value = null;
+      await fetchRideDetails(_currentRideId!);
+    }
+  }
+
+  // Initialize controller with ride ID
   Future<void> initialize(String rideId) async {
-    // Use addPostFrameCallback to ensure this runs after the current build is complete
+    if (_isDisposed) return;
+    _currentRideId = rideId;
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await fetchRideDetails(rideId);
       _startPeriodicRefresh(rideId);
@@ -138,8 +154,7 @@ class WaitingTimeController extends ChangeNotifier {
 
     _isLoading.value = true;
     _dataError.value = null;
-
-    // Only call notifyListeners if we're not in the middle of a build
+    _errorType.value = null;
     _safeNotifyListeners();
 
     try {
@@ -147,6 +162,7 @@ class WaitingTimeController extends ChangeNotifier {
           ?.getIdToken();
       if (authToken == null) {
         _dataError.value = "User not authenticated. Please log in.";
+        _errorType.value = "auth";
         _isLoading.value = false;
         _safeNotifyListeners();
         return;
@@ -166,16 +182,32 @@ class WaitingTimeController extends ChangeNotifier {
         final Map<String, dynamic> responseData = json.decode(response.body);
         _rideDetails.value = RideDetails.fromJson(responseData);
         _dataError.value = null;
-        print("Ride details fetched successfully");
+        _errorType.value = null;
+      } else if (response.statusCode == 404) {
+        _dataError.value = "Ride not found. It may have been cancelled.";
+        _errorType.value = "client";
+      } else if (response.statusCode == 401) {
+        _dataError.value = "Authentication failed. Please log in again.";
+        _errorType.value = "auth";
+      } else if (response.statusCode >= 500) {
+        _dataError.value = "Server error. Please try again later.";
+        _errorType.value = "server";
       } else {
-        _dataError.value =
-            "Failed to load ride details: ${response.statusCode} - ${response.body}";
-        print("Backend error fetching ride details: ${response.body}");
+        _dataError.value = "Failed to load ride details. Please try again.";
+        _errorType.value = "unknown";
       }
     } catch (e) {
       if (_isDisposed) return;
-      _dataError.value = "Network error fetching ride details: $e";
-      print("Network error fetching ride details: $e");
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('TimeoutException') ||
+          e.toString().contains('HandshakeException')) {
+        _dataError.value =
+            "Network connection failed. Please check your internet connection.";
+        _errorType.value = "network";
+      } else {
+        _dataError.value = "Network error loading ride details.";
+        _errorType.value = "network";
+      }
     } finally {
       if (_isDisposed) return;
       _isLoading.value = false;

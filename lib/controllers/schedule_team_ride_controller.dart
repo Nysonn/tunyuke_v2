@@ -44,7 +44,7 @@ class ScheduleTeamRideController extends ChangeNotifier {
 
   // Use 10.0.2.2 for Android emulator, or your actual IP for physical devices
   final String _backendBaseUrl =
-      'http://192.168.241.24:8080'; // Your Go backend URL
+      'http://192.168.78.23:8080'; // Your Go backend URL
 
   final ValueNotifier<int?> _numberOfTravelers = ValueNotifier<int?>(null);
   ValueNotifier<int?> get numberOfTravelers => _numberOfTravelers;
@@ -111,7 +111,9 @@ class ScheduleTeamRideController extends ChangeNotifier {
   final ValueNotifier<String?> _referralCode = ValueNotifier<String?>(null);
   ValueNotifier<String?> get referralCode => _referralCode;
 
-  final ValueNotifier<String?> _rideId = ValueNotifier<String?>(null); // Add this
+  final ValueNotifier<String?> _rideId = ValueNotifier<String?>(
+    null,
+  ); // Add this
   ValueNotifier<String?> get rideId => _rideId; // Add this
 
   final ValueNotifier<int?> _farePerPerson = ValueNotifier<int?>(

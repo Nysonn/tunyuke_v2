@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 class OnboardingController extends ChangeNotifier {
   bool _isDisposed = false;
 
-  final String _backendBaseUrl = 'http://192.168.241.24:8080';
+  final String _backendBaseUrl = 'http://192.168.78.23:8080';
 
   final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
   ValueNotifier<bool> get isLoading => _isLoading;
@@ -20,15 +20,37 @@ class OnboardingController extends ChangeNotifier {
   final ValueNotifier<String?> _joinedRideId = ValueNotifier<String?>(null);
   ValueNotifier<String?> get joinedRideId => _joinedRideId;
 
+  // Add error type for better fallback handling
+  final ValueNotifier<String?> _errorType = ValueNotifier<String?>(null);
+  ValueNotifier<String?> get errorType => _errorType;
+
   OnboardingController();
 
   // Set referral code
   void setReferralCode(String? code) {
     if (_isDisposed) return;
-    _referralCode.value = code
-        ?.toUpperCase(); // Convert to uppercase for consistency
-    _dataError.value = null; // Clear any previous errors
+    _referralCode.value = code?.toUpperCase();
+    _dataError.value = null;
+    _errorType.value = null;
     notifyListeners();
+  }
+
+  // Clear data
+  void clearData() {
+    if (_isDisposed) return;
+    _referralCode.value = null;
+    _joinedRideId.value = null;
+    _dataError.value = null;
+    _errorType.value = null;
+    _isLoading.value = false;
+    notifyListeners();
+  }
+
+  // Retry function for fallback screen
+  Future<void> retryJoinRide() async {
+    _dataError.value = null;
+    _errorType.value = null;
+    await joinRideWithCode();
   }
 
   // Join ride using referral code
@@ -37,12 +59,14 @@ class OnboardingController extends ChangeNotifier {
 
     if (_referralCode.value == null || _referralCode.value!.trim().isEmpty) {
       _dataError.value = "Please enter a referral code";
+      _errorType.value = "validation";
       notifyListeners();
       return;
     }
 
     _isLoading.value = true;
     _dataError.value = null;
+    _errorType.value = null;
     notifyListeners();
 
     try {
@@ -50,6 +74,7 @@ class OnboardingController extends ChangeNotifier {
           ?.getIdToken();
       if (authToken == null) {
         _dataError.value = "User not authenticated. Please log in.";
+        _errorType.value = "auth";
         _isLoading.value = false;
         notifyListeners();
         return;
@@ -62,56 +87,56 @@ class OnboardingController extends ChangeNotifier {
           'Authorization': 'Bearer $authToken',
           'Content-Type': 'application/json',
         },
-        body: json.encode({'referral_code': _referralCode.value!.trim()}),
+        body: json.encode({'referral_code': _referralCode.value}),
       );
 
       if (_isDisposed) return;
 
-      if (joinResponse.statusCode == 204) {
-        // Success - now fetch ride details using the new endpoint
-        await _fetchRideByReferralCode(_referralCode.value!.trim(), authToken);
-        _dataError.value = null;
-        print("Successfully joined ride with code: ${_referralCode.value}");
-      } else if (joinResponse.statusCode == 404) {
-        _dataError.value = "Invalid referral code. Please check and try again.";
-        print("Invalid referral code: ${joinResponse.body}");
+      if (joinResponse.statusCode == 201) {
+        // Step 2: Fetch the ride ID using the referral code
+        await _fetchRideByReferralCode(_referralCode.value!, authToken);
       } else if (joinResponse.statusCode == 400) {
-        // Parse error message for more specific feedback
         try {
-          final errorBody = joinResponse.body;
-          if (errorBody.contains("expired")) {
-            _dataError.value = "This referral code has expired.";
-          } else if (errorBody.contains("full")) {
-            _dataError.value = "This ride is already full.";
+          final errorData = json.decode(joinResponse.body);
+          final errorBody = errorData['error'] as String;
+          if (errorBody.contains("already a participant")) {
+            await _fetchRideByReferralCode(_referralCode.value!, authToken);
           } else {
-            _dataError.value = "Unable to join ride: $errorBody";
+            _dataError.value = errorBody;
+            _errorType.value = "client";
           }
         } catch (e) {
           _dataError.value = "Unable to join ride. Please try again.";
+          _errorType.value = "client";
         }
-        print("Backend error joining ride: ${joinResponse.body}");
       } else if (joinResponse.statusCode == 403) {
-        // Handle 403 Forbidden error
         _dataError.value =
-            "Access denied. You may not have permission to join this ride or you're already a participant.";
-        print("403 Forbidden error joining ride: ${joinResponse.body}");
+            "Access denied. You may not have permission to join this ride.";
+        _errorType.value = "auth";
       } else if (joinResponse.statusCode == 401) {
-        // Handle 401 Unauthorized error
         _dataError.value =
             "Authentication failed. Please log out and log back in.";
-        print("401 Unauthorized error joining ride: ${joinResponse.body}");
+        _errorType.value = "auth";
+      } else if (joinResponse.statusCode >= 500) {
+        _dataError.value = "Server error. Please try again later.";
+        _errorType.value = "server";
       } else {
-        _dataError.value =
-            "Failed to join ride: ${joinResponse.statusCode} - ${joinResponse.body}";
-        print(
-          "Backend error joining ride: ${joinResponse.statusCode} - ${joinResponse.body}",
-        );
+        _dataError.value = "Failed to join ride. Please try again.";
+        _errorType.value = "unknown";
       }
     } catch (e) {
       if (_isDisposed) return;
-      _dataError.value =
-          "Network error. Please check your connection and try again.";
-      print("Network error joining ride: $e");
+      if (e.toString().contains('SocketException') ||
+          e.toString().contains('TimeoutException') ||
+          e.toString().contains('HandshakeException')) {
+        _dataError.value =
+            "Network connection failed. Please check your internet connection.";
+        _errorType.value = "network";
+      } else {
+        _dataError.value =
+            "Network error. Please check your connection and try again.";
+        _errorType.value = "network";
+      }
     } finally {
       if (_isDisposed) return;
       _isLoading.value = false;
@@ -176,16 +201,6 @@ class OnboardingController extends ChangeNotifier {
     return null;
   }
 
-  // Clear all data
-  void clearData() {
-    if (_isDisposed) return;
-    _referralCode.value = null;
-    _joinedRideId.value = null;
-    _dataError.value = null;
-    _isLoading.value = false;
-    notifyListeners();
-  }
-
   @override
   void dispose() {
     _isDisposed = true;
@@ -193,6 +208,7 @@ class OnboardingController extends ChangeNotifier {
     _dataError.dispose();
     _referralCode.dispose();
     _joinedRideId.dispose();
+    _errorType.dispose();
     super.dispose();
   }
 }
