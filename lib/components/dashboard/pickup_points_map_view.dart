@@ -226,9 +226,9 @@ class _PickupPointsMapViewState extends State<PickupPointsMapView>
       return _buildLoadingState();
     }
 
-    // Show error state if there's a location error
+    // Show error state if there's a location error i have changed it to loading state so that our users do not see the error message.
     if (widget.locationError != null) {
-      return _buildErrorState();
+      return _buildLoadingState();
     }
 
     // Show the actual map when location is available

@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 class OnboardingController extends ChangeNotifier {
   bool _isDisposed = false;
 
-  final String _backendBaseUrl = 'http://192.168.78.23:8080';
+  final String _backendBaseUrl = 'https://tunyuke-backend-api.onrender.com';
 
   final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
   ValueNotifier<bool> get isLoading => _isLoading;

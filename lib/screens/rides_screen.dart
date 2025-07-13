@@ -224,116 +224,113 @@ class _RidesScreenState extends State<RidesScreen> {
     );
   }
 
-  Widget _buildAllRidesList() {
-    return Consumer<RidesController>(
-      builder: (context, controller, child) {
-        final allRides = <Map<String, dynamic>>[];
-
-        // Add campus rides with type
-        for (var ride in controller.campusRides.value) {
-          allRides.add({...ride, 'ride_type': 'To Campus'});
-        }
-
-        // Add from campus rides with type
-        for (var ride in controller.fromCampusRides.value) {
-          allRides.add({...ride, 'ride_type': 'From Campus'});
-        }
-
-        // Add scheduled rides with type
-        for (var ride in controller.scheduledRides.value) {
-          allRides.add({...ride, 'ride_type': 'Team Ride'});
-        }
-
-        // Sort by creation date (newest first)
-        allRides.sort((a, b) {
-          final aDate =
-              DateTime.tryParse(a['created_at'] ?? '') ?? DateTime.now();
-          final bDate =
-              DateTime.tryParse(b['created_at'] ?? '') ?? DateTime.now();
-          return bDate.compareTo(aDate);
-        });
-
-        if (allRides.isEmpty) {
-          return _buildEmptyState(
-            "No rides found",
-            Icons.directions_car_rounded,
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: allRides.length,
-          itemBuilder: (context, index) {
-            final ride = allRides[index];
-            final rideType = ride['ride_type'];
-
-            String title, subtitle;
-            if (rideType == 'To Campus') {
-              title = "To ${ride['pickup_station'] ?? 'Campus'}";
-              subtitle = "Ride Time: ${ride['ride_time'] ?? 'N/A'}";
-            } else if (rideType == 'From Campus') {
-              title = "To ${ride['destination'] ?? 'Destination'}";
-              subtitle = "Ride Time: ${ride['ride_time'] ?? 'N/A'}";
-            } else {
-              title =
-                  "${ride['pickup_name'] ?? 'Pickup'} → ${ride['dest_name'] ?? 'Destination'}";
-              subtitle =
-                  "Seats: ${ride['seats'] ?? 0} • Code: ${ride['referral_code'] ?? 'N/A'}";
-            }
-
-            return _buildRideCard(
-              title: title,
-              subtitle: subtitle,
-              status: ride['status'] ?? 'pending',
-              time: rideType == 'Team Ride'
-                  ? _formatDate(ride['scheduled_at'] ?? '')
-                  : _formatDate(ride['created_at'] ?? ''),
-              fare: ride['fare'] ?? 0,
-              rideType: rideType,
-            );
-          },
-        );
-      },
+  Widget _buildRidesList(RidesController controller) {
+    return RefreshIndicator(
+      onRefresh: controller.refreshRides,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (controller.campusRides.value.isNotEmpty) ...[
+            _buildSectionHeader('To Campus'),
+            ...controller.campusRides.value.map(
+              (ride) => _buildRideCard(
+                title: "To ${ride['pickup_station'] ?? 'Campus'}",
+                subtitle: "Ride Time: ${ride['ride_time'] ?? 'N/A'}",
+                status: ride['status'] ?? 'pending',
+                time: _formatDate(ride['created_at'] ?? ''),
+                fare: ride['fare'] ?? 0,
+                rideType: 'To Campus',
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+          if (controller.fromCampusRides.value.isNotEmpty) ...[
+            _buildSectionHeader('From Campus'),
+            ...controller.fromCampusRides.value.map(
+              (ride) => _buildRideCard(
+                title: "To ${ride['destination'] ?? 'Destination'}",
+                subtitle: "Ride Time: ${ride['ride_time'] ?? 'N/A'}",
+                status: ride['status'] ?? 'pending',
+                time: _formatDate(ride['created_at'] ?? ''),
+                fare: ride['fare'] ?? 0,
+                rideType: 'From Campus',
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+          if (controller.scheduledRides.value.isNotEmpty) ...[
+            _buildSectionHeader('Scheduled Rides'),
+            ...controller.scheduledRides.value.map(
+              (ride) => _buildRideCard(
+                title:
+                    "${ride['pickup_name'] ?? 'Pickup'} → ${ride['dest_name'] ?? 'Destination'}",
+                subtitle:
+                    "Seats: ${ride['seats'] ?? 0} • Code: ${ride['referral_code'] ?? 'N/A'}",
+                status: ride['status'] ?? 'pending',
+                time: _formatDate(ride['scheduled_at'] ?? ''),
+                fare: ride['fare'] ?? 0,
+                rideType: 'Team Ride',
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
-  Widget _buildEmptyState(String message, IconData icon) {
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 40, color: Colors.grey[400]),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.directions_car_outlined,
+            size: 80,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'You have not booked any rides',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[600],
             ),
-            const SizedBox(height: 24),
-            Text(
-              message,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1A1A1A),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Start by booking your first ride!',
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/dashboard');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              "Your rides will appear here once you book them.",
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-                height: 1.4,
-              ),
-              textAlign: TextAlign.center,
+            child: const Text(
+              'Book a Ride',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -348,7 +345,7 @@ class _RidesScreenState extends State<RidesScreen> {
         backgroundColor: theme.primaryColor,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        iconTheme: const IconThemeData(color: Colors.white), // White back arrow
+        iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           "My Rides",
           style: TextStyle(
@@ -385,6 +382,7 @@ class _RidesScreenState extends State<RidesScreen> {
       ),
       body: Consumer<RidesController>(
         builder: (context, controller, child) {
+          // Show loading state
           if (controller.isLoading.value) {
             return Center(
               child: Column(
@@ -393,7 +391,7 @@ class _RidesScreenState extends State<RidesScreen> {
                   CircularProgressIndicator(color: theme.primaryColor),
                   const SizedBox(height: 16),
                   const Text(
-                    "Loading your rides...",
+                    'Loading your rides...',
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ],
@@ -401,7 +399,29 @@ class _RidesScreenState extends State<RidesScreen> {
             );
           }
 
+          // Show refreshing state with overlay
+          if (controller.isRefreshing.value) {
+            return Stack(
+              children: [
+                _buildRidesList(controller),
+                const Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: LinearProgressIndicator(),
+                ),
+              ],
+            );
+          }
+
+          // Handle error states
           if (controller.error.value != null) {
+            // Special case for "no rides" - show a friendly message
+            if (controller.isNoRidesError) {
+              return _buildEmptyState();
+            }
+
+            // Show error with retry option
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
@@ -468,7 +488,7 @@ class _RidesScreenState extends State<RidesScreen> {
             );
           }
 
-          return _buildAllRidesList();
+          return _buildRidesList(controller);
         },
       ),
     );

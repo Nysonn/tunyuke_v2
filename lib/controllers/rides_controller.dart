@@ -32,6 +32,10 @@ class RidesController extends ChangeNotifier {
   final ValueNotifier<bool> _isRefreshing = ValueNotifier<bool>(false);
   ValueNotifier<bool> get isRefreshing => _isRefreshing;
 
+  // Add a flag to track if we have any data at all
+  final ValueNotifier<bool> _hasData = ValueNotifier<bool>(false);
+  ValueNotifier<bool> get hasData => _hasData;
+
   RidesController() {
     fetchAllRides();
   }
@@ -44,11 +48,20 @@ class RidesController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await Future.wait([
+      // Fetch all rides concurrently
+      final results = await Future.wait([
         _fetchCampusRides(),
         _fetchFromCampusRides(),
         _fetchScheduledRides(),
       ]);
+
+      // Check if we have any data at all
+      _updateHasDataFlag();
+
+      // If no data and no errors, show appropriate message
+      if (!_hasData.value && _error.value == null) {
+        _error.value = "no_rides"; // Special error code for no rides
+      }
     } catch (e) {
       if (_isDisposed) return;
       _error.value = "Failed to load rides: $e";
@@ -73,6 +86,13 @@ class RidesController extends ChangeNotifier {
         _fetchFromCampusRides(),
         _fetchScheduledRides(),
       ]);
+
+      _updateHasDataFlag();
+
+      // If no data and no errors, show appropriate message
+      if (!_hasData.value && _error.value == null) {
+        _error.value = "no_rides";
+      }
     } catch (e) {
       if (_isDisposed) return;
       _error.value = "Failed to refresh rides: $e";
@@ -84,42 +104,93 @@ class RidesController extends ChangeNotifier {
     }
   }
 
+  void _updateHasDataFlag() {
+    _hasData.value =
+        _campusRides.value.isNotEmpty ||
+        _fromCampusRides.value.isNotEmpty ||
+        _scheduledRides.value.isNotEmpty;
+  }
+
   Future<void> _fetchCampusRides() async {
-    try {
-      final rides = await ApiService.getUserCampusRides();
-      if (_isDisposed) return;
-      _campusRides.value = rides;
-      print("Fetched ${rides.length} campus rides");
-    } catch (e) {
-      if (_isDisposed) return;
-      print("Error fetching campus rides: $e");
-      throw e;
+    int retryCount = 0;
+    const maxRetries = 3;
+
+    while (retryCount < maxRetries) {
+      try {
+        final rides = await ApiService.getUserCampusRides();
+        if (_isDisposed) return;
+        _campusRides.value = rides ?? []; // Ensure non-null
+        print("Fetched ${_campusRides.value.length} campus rides");
+        return; // Success, exit retry loop
+      } catch (e) {
+        retryCount++;
+        if (retryCount >= maxRetries) {
+          if (_isDisposed) return;
+          print("Error fetching campus rides after $maxRetries attempts: $e");
+          _campusRides.value = []; // Set empty list on final failure
+          return;
+        }
+
+        // Wait before retrying (exponential backoff)
+        await Future.delayed(Duration(seconds: retryCount * 2));
+        print("Retrying campus rides fetch, attempt $retryCount");
+      }
     }
   }
 
   Future<void> _fetchFromCampusRides() async {
-    try {
-      final rides = await ApiService.getUserFromCampusRides();
-      if (_isDisposed) return;
-      _fromCampusRides.value = rides;
-      print("Fetched ${rides.length} from campus rides");
-    } catch (e) {
-      if (_isDisposed) return;
-      print("Error fetching from campus rides: $e");
-      throw e;
+    int retryCount = 0;
+    const maxRetries = 3;
+
+    while (retryCount < maxRetries) {
+      try {
+        final rides = await ApiService.getUserFromCampusRides();
+        if (_isDisposed) return;
+        _fromCampusRides.value = rides ?? [];
+        print("Fetched ${_fromCampusRides.value.length} from campus rides");
+        return;
+      } catch (e) {
+        retryCount++;
+        if (retryCount >= maxRetries) {
+          if (_isDisposed) return;
+          print(
+            "Error fetching from campus rides after $maxRetries attempts: $e",
+          );
+          _fromCampusRides.value = [];
+          return;
+        }
+
+        await Future.delayed(Duration(seconds: retryCount * 2));
+        print("Retrying from campus rides fetch, attempt $retryCount");
+      }
     }
   }
 
   Future<void> _fetchScheduledRides() async {
-    try {
-      final rides = await ApiService.getUserScheduledRides();
-      if (_isDisposed) return;
-      _scheduledRides.value = rides;
-      print("Fetched ${rides.length} scheduled rides");
-    } catch (e) {
-      if (_isDisposed) return;
-      print("Error fetching scheduled rides: $e");
-      throw e;
+    int retryCount = 0;
+    const maxRetries = 3;
+
+    while (retryCount < maxRetries) {
+      try {
+        final rides = await ApiService.getUserScheduledRides();
+        if (_isDisposed) return;
+        _scheduledRides.value = rides ?? [];
+        print("Fetched ${_scheduledRides.value.length} scheduled rides");
+        return;
+      } catch (e) {
+        retryCount++;
+        if (retryCount >= maxRetries) {
+          if (_isDisposed) return;
+          print(
+            "Error fetching scheduled rides after $maxRetries attempts: $e",
+          );
+          _scheduledRides.value = [];
+          return;
+        }
+
+        await Future.delayed(Duration(seconds: retryCount * 2));
+        print("Retrying scheduled rides fetch, attempt $retryCount");
+      }
     }
   }
 
@@ -129,6 +200,26 @@ class RidesController extends ChangeNotifier {
         _fromCampusRides.value.length +
         _scheduledRides.value.length;
   }
+
+  // Get user-friendly error message
+  String get userFriendlyError {
+    if (_error.value == null) return "";
+
+    if (_error.value == "no_rides") {
+      return "You have not booked any rides";
+    }
+
+    if (_error.value!.contains("Network error") ||
+        _error.value!.contains("Failed to refresh") ||
+        _error.value!.contains("Failed to load")) {
+      return "Failed to refresh rides. Please check your internet connection and try again.";
+    }
+
+    return "Something went wrong. Please try again.";
+  }
+
+  // Check if error is just "no rides" (not a real error)
+  bool get isNoRidesError => _error.value == "no_rides";
 
   // Get ride status color
   Color getRideStatusColor(String status) {
@@ -169,6 +260,7 @@ class RidesController extends ChangeNotifier {
     _isLoading.dispose();
     _error.dispose();
     _isRefreshing.dispose();
+    _hasData.dispose();
     super.dispose();
   }
 }

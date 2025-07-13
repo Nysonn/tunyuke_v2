@@ -44,7 +44,7 @@ class ScheduleTeamRideController extends ChangeNotifier {
 
   // Use 10.0.2.2 for Android emulator, or your actual IP for physical devices
   final String _backendBaseUrl =
-      'http://192.168.78.23:8080'; // Your Go backend URL
+      'https://tunyuke-backend-api.onrender.com'; // Your Go backend URL
 
   final ValueNotifier<int?> _numberOfTravelers = ValueNotifier<int?>(null);
   ValueNotifier<int?> get numberOfTravelers => _numberOfTravelers;

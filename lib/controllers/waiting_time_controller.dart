@@ -106,7 +106,7 @@ class RideDetails {
 class WaitingTimeController extends ChangeNotifier {
   bool _isDisposed = false;
 
-  final String _backendBaseUrl = 'http://192.168.78.23:8080';
+  final String _backendBaseUrl = 'https://tunyuke-backend-api.onrender.com';
 
   final ValueNotifier<RideDetails?> _rideDetails = ValueNotifier<RideDetails?>(
     null,
