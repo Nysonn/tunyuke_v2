@@ -7,8 +7,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:Tunyuke/models/pickup_point.dart';
-import 'package:Tunyuke/controllers/rides_controller.dart'; // Import the RidesController
+import 'package:Tunyuke/controllers/rides_controller.dart';
 import 'package:provider/provider.dart';
+import '../services/location_service.dart';
 
 class DashboardController extends ChangeNotifier {
   // Add a flag to track if the controller is disposed
@@ -93,11 +94,14 @@ class DashboardController extends ChangeNotifier {
     },
   ];
 
+  final LocationService _locationService = LocationService();
+  StreamSubscription<LatLng?>? _locationSubscription;
+
   DashboardController() {
     _initializeGreeting();
     // Fetch user name first, then initialize location
     _fetchUserNameFromFirebase().then((_) {
-      _initializeLocationAndMapData();
+      _initializeLocation();
     });
   }
 
@@ -148,100 +152,63 @@ class DashboardController extends ChangeNotifier {
     }
   }
 
-  Future<void> _initializeLocationAndMapData() async {
+  Future<void> _initializeLocation() async {
     if (_isDisposed) return;
 
     _isLocationLoading.value = true;
     _locationError.value = null;
     _nearestPickupPointName.value = null;
     _distanceToNearestPickupPointKm.value = null;
-    _debugInfo.value = "Initializing location and map data...";
     notifyListeners();
 
     try {
-      // Get user's location first
-      await _determinePosition();
+      // Listen to location stream
+      _locationSubscription = _locationService.locationStream.listen((
+        location,
+      ) {
+        if (_isDisposed) return;
 
-      // Check if disposed after async operation
-      if (_isDisposed) return;
+        if (location != null) {
+          _userLocation.value = location;
+          _isLocationLoading.value = false;
+          _locationError.value = null;
+          _calculateDistancesToPickupPoints();
+          _findNearestPickupPoint();
+        } else {
+          _isLocationLoading.value = false;
+          _locationError.value = "Unable to get location";
+        }
+        notifyListeners();
+      });
 
-      // Then fetch pickup points
+      // Fetch pickup points first
       await _fetchPickupPointsFromFirebase();
-
-      // Check if disposed after async operation
       if (_isDisposed) return;
 
-      // Calculate distances and find nearest
-      if (_userLocation.value != null && _pickupPoints.value.isNotEmpty) {
+      // Get initial location
+      final location = await _locationService.getCurrentLocation();
+      if (_isDisposed) return;
+
+      if (location != null) {
+        _userLocation.value = location;
         _calculateDistancesToPickupPoints();
         _findNearestPickupPoint();
-        _debugInfo.value = "";
       } else {
-        _debugInfo.value = "";
+        _locationError.value = "Unable to get location";
       }
+
+      // Start periodic updates (every 2 minutes instead of 5 seconds)
+      _locationService.startLocationUpdates(interval: Duration(minutes: 2));
     } catch (e) {
       if (_isDisposed) return;
-      _debugInfo.value = "";
+      _locationError.value = "Location error: $e";
+      print("Error initializing location: $e");
     } finally {
       if (_isDisposed) return;
       _isLocationLoading.value = false;
-      _startPeriodicUpdates(); // Start periodic updates after initialization
       notifyListeners();
     }
   }
-
-  Future<void> _determinePosition() async {
-    if (_isDisposed) return;
-
-    try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        if (_isDisposed) return;
-        _locationError.value =
-            'Location services are disabled. Please enable them.';
-        return;
-      }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          if (_isDisposed) return;
-          _locationError.value = 'Location permissions are denied.';
-          return;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        if (_isDisposed) return;
-        _locationError.value =
-            'Location permissions are permanently denied, we cannot request permissions.';
-        return;
-      }
-
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: Duration(seconds: 10), // Add timeout
-      );
-
-      if (_isDisposed) return;
-      _userLocation.value = LatLng(position.latitude, position.longitude);
-      _locationError.value = null;
-      print("User location found: ${position.latitude}, ${position.longitude}");
-    } catch (e) {
-      if (_isDisposed) return;
-      _locationError.value = 'Failed to get current location: $e';
-      print('Error getting current location: $e');
-    }
-
-    if (!_isDisposed) {
-      notifyListeners();
-    }
-  }
-
-  // Timers for periodic updates
-  Timer? _pickupPointsTimer;
-  Timer? _locationTimer;
 
   Future<void> _fetchPickupPointsFromFirebase() async {
     if (_isDisposed) return;
@@ -306,54 +273,6 @@ class DashboardController extends ChangeNotifier {
     if (!_isDisposed) {
       notifyListeners();
     }
-  }
-
-  void _startPeriodicUpdates() {
-    if (_isDisposed) return;
-
-    // Cancel existing timers if any
-    _stopPeriodicUpdates();
-
-    // Start periodic location updates every 5 seconds
-    _locationTimer = Timer.periodic(Duration(seconds: 5), (_) {
-      if (!_isDisposed) {
-        _determinePosition();
-      }
-    });
-
-    // Start periodic pickup points updates every 5 seconds
-    _pickupPointsTimer = Timer.periodic(Duration(seconds: 5), (_) async {
-      if (!_isDisposed) {
-        await _fetchPickupPointsFromFirebase();
-        if (_userLocation.value != null && _pickupPoints.value.isNotEmpty) {
-          _calculateDistancesToPickupPoints();
-          _findNearestPickupPoint();
-        }
-      }
-    });
-  }
-
-  void _stopPeriodicUpdates() {
-    _locationTimer?.cancel();
-    _pickupPointsTimer?.cancel();
-  }
-
-  @override
-  void dispose() {
-    _isDisposed = true; // Set the flag before disposing
-    _stopPeriodicUpdates();
-    _currentTimeGreeting.dispose();
-    _userName.dispose();
-    _walletBalance.dispose();
-    _currentIndex.dispose();
-    _userLocation.dispose();
-    _pickupPoints.dispose();
-    _isLocationLoading.dispose();
-    _locationError.dispose();
-    _nearestPickupPointName.dispose();
-    _distanceToNearestPickupPointKm.dispose();
-    _debugInfo.dispose();
-    super.dispose();
   }
 
   void _calculateDistancesToPickupPoints() {
@@ -431,7 +350,7 @@ class DashboardController extends ChangeNotifier {
 
   Future<void> refreshMapData() async {
     if (!_isDisposed) {
-      await _initializeLocationAndMapData();
+      await _initializeLocation();
     }
   }
 
@@ -516,5 +435,45 @@ class DashboardController extends ChangeNotifier {
   void onDashboardCardTapped(BuildContext context, String routeName) {
     if (_isDisposed) return;
     Navigator.pushNamed(context, routeName);
+  }
+
+  Future<void> retryLocation() async {
+    if (_isDisposed) return;
+
+    // Use force refresh to get new location
+    final location = await _locationService.getCurrentLocation(
+      forceRefresh: true,
+    );
+
+    if (_isDisposed) return;
+
+    if (location != null) {
+      _userLocation.value = location;
+      _locationError.value = null;
+      _calculateDistancesToPickupPoints();
+      _findNearestPickupPoint();
+    } else {
+      _locationError.value = "Unable to get location";
+    }
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true; // Set the flag before disposing
+    _currentTimeGreeting.dispose();
+    _userName.dispose();
+    _walletBalance.dispose();
+    _currentIndex.dispose();
+    _userLocation.dispose();
+    _pickupPoints.dispose();
+    _isLocationLoading.dispose();
+    _locationError.dispose();
+    _nearestPickupPointName.dispose();
+    _distanceToNearestPickupPointKm.dispose();
+    _debugInfo.dispose();
+    _locationSubscription?.cancel();
+    _locationService.dispose();
+    super.dispose();
   }
 }

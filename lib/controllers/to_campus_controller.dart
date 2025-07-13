@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:Tunyuke/services/api_service.dart';
 
 class ToCampusController extends ChangeNotifier {
   bool _isDisposed = false;
@@ -17,16 +18,14 @@ class ToCampusController extends ChangeNotifier {
       ValueNotifier<Map<String, int>>({});
   ValueNotifier<Map<String, int>> get prices => _prices;
 
-  // New ValueNotifier for morning ready times (map: station -> time)
   final ValueNotifier<Map<String, String>> _morningReadyTimes =
       ValueNotifier<Map<String, String>>({});
   ValueNotifier<Map<String, String>> get morningReadyTimes =>
       _morningReadyTimes;
 
-  // New ValueNotifier for evening ready time (single string)
   final ValueNotifier<String> _eveningReadyTime = ValueNotifier<String>(
     "6:00 pm",
-  ); // Default value
+  );
   ValueNotifier<String> get eveningReadyTime => _eveningReadyTime;
 
   final ValueNotifier<String?> _dataError = ValueNotifier<String?>(null);
@@ -35,8 +34,82 @@ class ToCampusController extends ChangeNotifier {
   final ValueNotifier<bool> _isLoading = ValueNotifier<bool>(false);
   ValueNotifier<bool> get isLoading => _isLoading;
 
+  // New properties for booking submission
+  final ValueNotifier<bool> _isSubmitting = ValueNotifier<bool>(false);
+  ValueNotifier<bool> get isSubmitting => _isSubmitting;
+
+  final ValueNotifier<String?> _submitError = ValueNotifier<String?>(null);
+  ValueNotifier<String?> get submitError => _submitError;
+
   ToCampusController() {
     _fetchInitialData();
+  }
+
+  Future<bool> submitBooking({
+    required String pickupStation,
+    required String rideTime,
+    required int fare,
+  }) async {
+    if (_isDisposed) return false;
+
+    _isSubmitting.value = true;
+    _submitError.value = null;
+    notifyListeners();
+
+    try {
+      await ApiService.createCampusRide(
+        pickupStation: pickupStation,
+        rideTime: rideTime,
+        fare: fare,
+      );
+
+      if (_isDisposed) return false;
+
+      _isSubmitting.value = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      if (_isDisposed) return false;
+
+      _submitError.value = e.toString();
+      _isSubmitting.value = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // New method for "From Campus" bookings
+  Future<bool> submitFromCampusBooking({
+    required String destination,
+    required String rideTime,
+    required int fare,
+  }) async {
+    if (_isDisposed) return false;
+
+    _isSubmitting.value = true;
+    _submitError.value = null;
+    notifyListeners();
+
+    try {
+      await ApiService.createFromCampusRide(
+        destination: destination,
+        rideTime: rideTime,
+        fare: fare,
+      );
+
+      if (_isDisposed) return false;
+
+      _isSubmitting.value = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      if (_isDisposed) return false;
+
+      _submitError.value = e.toString();
+      _isSubmitting.value = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   Future<void> _fetchInitialData() async {
@@ -51,7 +124,7 @@ class ToCampusController extends ChangeNotifier {
         _fetchPickupStations(),
         _fetchRideTimes(),
         _fetchPrices(),
-        _fetchReadyTimes(), // Call the new fetch method
+        _fetchReadyTimes(),
       ]);
     } catch (e) {
       if (_isDisposed) return;
@@ -195,10 +268,12 @@ class ToCampusController extends ChangeNotifier {
     _pickupStations.dispose();
     _rideTimes.dispose();
     _prices.dispose();
-    _morningReadyTimes.dispose(); // Dispose new ValueNotifiers
-    _eveningReadyTime.dispose(); // Dispose new ValueNotifiers
+    _morningReadyTimes.dispose();
+    _eveningReadyTime.dispose();
     _dataError.dispose();
     _isLoading.dispose();
+    _isSubmitting.dispose();
+    _submitError.dispose();
     super.dispose();
   }
 }

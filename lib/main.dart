@@ -12,6 +12,7 @@ import 'package:Tunyuke/screens/from_campus_screen.dart';
 import 'package:Tunyuke/screens/schedule_team_ride_screen.dart';
 import 'package:Tunyuke/screens/onboard_scheduled_ride_screen.dart';
 import 'package:Tunyuke/screens/profile_screen.dart';
+import 'package:Tunyuke/screens/rides_screen.dart';
 import 'package:Tunyuke/controllers/to_campus_controller.dart';
 import 'package:Tunyuke/controllers/schedule_team_ride_controller.dart';
 import 'package:Tunyuke/controllers/waiting_time_controller.dart';
@@ -89,6 +90,7 @@ class MyApp extends StatelessWidget {
         '/onboard_scheduled_ride': (context) =>
             const OnboardScheduledRideScreen(),
         '/profile': (context) => const ProfileScreen(),
+        '/rides': (context) => const RidesScreen(),
       },
       initialRoute: '/welcome',
       debugShowCheckedModeBanner: false,
