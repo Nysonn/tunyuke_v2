@@ -11,7 +11,6 @@ class AuthService {
   static const String _kUserUidKey = 'userUid';
 
   // Method to allow a user to Register with Us using email, username and a password
-
   Future<UserCredential> signUpWithEmailAndPassword(
     String email,
     String password,
@@ -36,7 +35,10 @@ class AuthService {
         });
 
         // Save login state after successful sign up
-        await _saveLoginState(true, userCredential.user!.uid);
+        await saveLoginState(
+          true,
+          userCredential.user!.uid,
+        ); // Remove underscore
       }
       return userCredential;
     } on FirebaseAuthException catch (e) {
@@ -47,7 +49,6 @@ class AuthService {
   }
 
   // Method to allow a user to Login with Us using email and password
-
   Future<UserCredential> signInWithEmailAndPassword(
     String email,
     String password,
@@ -60,7 +61,10 @@ class AuthService {
 
       // Save login state after successful sign in
       if (userCredential.user != null) {
-        await _saveLoginState(true, userCredential.user!.uid);
+        await saveLoginState(
+          true,
+          userCredential.user!.uid,
+        ); // Remove underscore
       }
       return userCredential;
     } on FirebaseAuthException catch (e) {
@@ -70,9 +74,21 @@ class AuthService {
     }
   }
 
+  // NEW: Method to check if a user's profile exists in Firestore
+  Future<bool> checkFirestoreProfileExists(String uid) async {
+    try {
+      final userDoc = await _firestore.collection('users').doc(uid).get();
+      return userDoc.exists;
+    } catch (e) {
+      print("Error checking Firestore profile for UID $uid: $e");
+      // Depending on your error handling strategy, you might rethrow or return false
+      return false; // Assume profile doesn't exist on error
+    }
+  }
+
   // --- Shared Preferences Management ---
 
-  Future<void> _saveLoginState(bool isLoggedIn, String? uid) async {
+  Future<void> saveLoginState(bool isLoggedIn, String? uid) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_kLoggedInKey, isLoggedIn);
     if (isLoggedIn && uid != null) {
@@ -96,10 +112,34 @@ class AuthService {
   Future<void> signOut() async {
     try {
       await _auth.signOut();
-      await _saveLoginState(false, null); // Clear login state on logout
-      print("User signed out and login state cleared.");
+      await saveLoginState(false, null); // Remove underscore
+
+      // Also clear any cached user data
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear(); // This clears all stored preferences
+
+      print("User signed out and all preferences cleared.");
     } catch (e) {
       throw Exception('Error signing out: $e');
+    }
+  }
+
+  // Add method to check if authentication is valid
+  Future<bool> isAuthenticationValid() async {
+    try {
+      final isLoggedIn = await this.isLoggedIn();
+      final currentUser = _auth.currentUser;
+
+      if (!isLoggedIn || currentUser == null) {
+        return false;
+      }
+
+      // Verify the user's token is still valid
+      await currentUser.reload();
+      return FirebaseAuth.instance.currentUser != null;
+    } catch (e) {
+      print("Authentication validation failed: $e");
+      return false;
     }
   }
 
