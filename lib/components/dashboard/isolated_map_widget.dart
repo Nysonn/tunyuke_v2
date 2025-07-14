@@ -32,7 +32,10 @@ class _IsolatedMapWidgetState extends State<IsolatedMapWidget> {
   @override
   void initState() {
     super.initState();
-    _updateMarkersAndPolylines();
+    // Delay marker creation to improve initial loading speed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateMarkersAndPolylines();
+    });
   }
 
   @override
@@ -86,30 +89,77 @@ class _IsolatedMapWidgetState extends State<IsolatedMapWidget> {
     return 6371000 * c; // Earth's radius in meters
   }
 
+  // Optimize marker creation
   void _updateMarkersAndPolylines() {
-    final newMarkers = <Marker>{};
+    if (!mounted) return;
 
-    // Add user location marker
+    // Limit the number of markers shown based on distance
+    final nearbyPoints = widget.pickupPoints.length > 10
+        ? _filterNearbyPoints(
+            widget.pickupPoints,
+            5000,
+          ) // Only show points within 5km
+        : widget.pickupPoints;
+
+    // Create markers for filtered points
+    _markers = _createMarkers(nearbyPoints);
+
+    // Only create polylines if we have user location
     if (widget.userLocation != null) {
-      newMarkers.add(
+      _polylines = _createPolylines();
+    } else {
+      _polylines = {};
+    }
+
+    if (mounted) setState(() {});
+  }
+
+  // Filter points to only show ones close to user
+  List<PickupPoint> _filterNearbyPoints(
+    List<PickupPoint> points,
+    double maxDistance,
+  ) {
+    if (widget.userLocation == null) return points;
+
+    return points.where((point) {
+      if (point.distanceMeters == null) return true;
+      return point.distanceMeters! <= maxDistance;
+    }).toList();
+  }
+
+  // Create map markers from pickup points
+  Set<Marker> _createMarkers(List<PickupPoint> points) {
+    Set<Marker> markers = {};
+
+    // Create a marker for each pickup point
+    for (var point in points) {
+      markers.add(
         Marker(
-          markerId: MarkerId('user_location'),
-          position: widget.userLocation!,
-          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-          infoWindow: InfoWindow(title: 'Your Location'),
+          markerId: MarkerId(point.id),
+          position: point.location,
+          infoWindow: InfoWindow(
+            title: point.name,
+            snippet: '${(point.distanceMeters ?? 0) / 1000} km away',
+          ),
         ),
       );
     }
 
-    // Add pickup point markers
-    newMarkers.addAll(
-      widget.pickupPoints.map((point) => point.toMarker()).toSet(),
-    );
+    // Add user's location marker if available
+    if (widget.userLocation != null) {
+      markers.add(
+        Marker(
+          markerId: const MarkerId('user_location'),
+          position: widget.userLocation!,
+          icon: BitmapDescriptor.defaultMarkerWithHue(
+            BitmapDescriptor.hueAzure,
+          ),
+          infoWindow: const InfoWindow(title: 'Your Location'),
+        ),
+      );
+    }
 
-    setState(() {
-      _markers = newMarkers;
-      _polylines = _createPolylines();
-    });
+    return markers;
   }
 
   void _updateCamera() {

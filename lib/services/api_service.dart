@@ -83,7 +83,7 @@ class ApiService {
   static Future<List<Map<String, dynamic>>> getUserCampusRides() async {
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/api/rides/campus'),
+        Uri.parse('$_baseUrl/campus-rides/user'), // Fixed endpoint
         headers: await _getHeaders(),
       );
 
@@ -155,7 +155,7 @@ class ApiService {
       final headers = await _getHeaders();
 
       final response = await http.get(
-        Uri.parse('$_baseUrl/from-campus-rides/user'),
+        Uri.parse('$_baseUrl/from-campus-rides/user'), // This endpoint was already correct
         headers: headers,
       );
 

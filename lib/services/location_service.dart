@@ -46,6 +46,27 @@ class LocationService {
     try {
       _locationRequestInProgress = true;
 
+      // ADDED: Immediately try to get last known position first
+      try {
+        final lastPosition = await Geolocator.getLastKnownPosition();
+        if (lastPosition != null) {
+          _lastKnownPosition = lastPosition;
+          _lastLocationFetch = DateTime.now();
+
+          final latLng = LatLng(lastPosition.latitude, lastPosition.longitude);
+          _locationStreamController?.add(latLng);
+
+          // Continue with getting a fresh position in the background
+          _getFreshPosition();
+
+          // Return the last known position immediately
+          return latLng;
+        }
+      } catch (e) {
+        print('Error getting last known position: $e');
+        // Continue with regular position fetch
+      }
+
       // Check permissions
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
@@ -68,10 +89,13 @@ class LocationService {
       // Get current position with timeout
       Position position =
           await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.high,
-            timeLimit: Duration(seconds: 10),
+            // Changed from high to medium for faster resolution
+            desiredAccuracy: LocationAccuracy.medium,
+            // Reduced timeout from 10 to 5 seconds
+            timeLimit: Duration(seconds: 5),
           ).timeout(
-            Duration(seconds: 15),
+            // Reduced timeout from 15 to 8 seconds
+            Duration(seconds: 8),
             onTimeout: () => throw Exception('Location request timed out'),
           );
 
@@ -110,6 +134,38 @@ class LocationService {
     } finally {
       _locationRequestInProgress = false;
     }
+  }
+
+  // New method to get a fresh position in the background
+  Future<void> _getFreshPosition() async {
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium, // Lower accuracy for speed
+        timeLimit: Duration(seconds: 5),
+      );
+
+      if (_lastKnownPosition == null ||
+          _calculateDistance(_lastKnownPosition!, position) > 50) {
+        _lastKnownPosition = position;
+        _lastLocationFetch = DateTime.now();
+
+        final latLng = LatLng(position.latitude, position.longitude);
+        _locationStreamController?.add(latLng);
+      }
+    } catch (e) {
+      print('Background location update failed: $e');
+    } finally {
+      _locationRequestInProgress = false;
+    }
+  }
+
+  double _calculateDistance(Position pos1, Position pos2) {
+    return Geolocator.distanceBetween(
+      pos1.latitude,
+      pos1.longitude,
+      pos2.latitude,
+      pos2.longitude,
+    );
   }
 
   void startLocationUpdates({Duration interval = const Duration(minutes: 1)}) {

@@ -458,6 +458,31 @@ class DashboardController extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Add this method
+  Future<void> initializeMapDataProgressively() async {
+    // Start location fetch in background
+    _locationService
+        .getCurrentLocation()
+        .then((location) {
+          if (_isDisposed) return;
+          _userLocation.value = location;
+          notifyListeners();
+
+          // Once we have location, calculate distances
+          if (location != null && _pickupPoints.value.isNotEmpty) {
+            _calculateDistancesToPickupPoints();
+            _findNearestPickupPoint();
+            notifyListeners();
+          }
+        })
+        .catchError((e) {
+          print("Error getting location: $e");
+        });
+
+    // Fetch pickup points independently
+    _fetchPickupPointsFromFirebase();
+  }
+
   @override
   void dispose() {
     _isDisposed = true; // Set the flag before disposing

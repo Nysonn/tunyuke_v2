@@ -221,25 +221,58 @@ class _PickupPointsMapViewState extends State<PickupPointsMapView>
 
   @override
   Widget build(BuildContext context) {
-    // Show loading state while location is being fetched
-    if (widget.isLoading) {
+    // Show the map with default location even when actual location is loading
+    // Only show loading state if we don't have pickup points at all
+    if (widget.isLoading && widget.pickupPoints.isEmpty) {
       return _buildLoadingState();
     }
 
-    // Show error state if there's a location error i have changed it to loading state so that our users do not see the error message.
-    if (widget.locationError != null) {
-      return _buildLoadingState();
-    }
-
-    // Show the actual map when location is available
+    // Always show map, even when location is being fetched or has error
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: Container(
         height: 200,
-        child: IsolatedMapWidget(
-          userLocation: widget.userLocation,
-          pickupPoints: widget.pickupPoints,
-          onMapCreated: widget.onMapCreated,
+        child: Stack(
+          children: [
+            // Always show the map
+            IsolatedMapWidget(
+              // Use default location if user location is not available
+              userLocation: widget.userLocation,
+              pickupPoints: widget.pickupPoints,
+              onMapCreated: widget.onMapCreated,
+            ),
+
+            // Show subtle loading indicator when location is being fetched
+            if (widget.isLoading || widget.locationError != null)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.blue,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Text("Locating...", style: TextStyle(fontSize: 12)),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

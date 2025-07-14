@@ -117,23 +117,24 @@ class RidesController extends ChangeNotifier {
 
     while (retryCount < maxRetries) {
       try {
+        print("Attempting to fetch campus rides, attempt ${retryCount + 1}");
         final rides = await ApiService.getUserCampusRides();
         if (_isDisposed) return;
-        _campusRides.value = rides ?? []; // Ensure non-null
-        print("Fetched ${_campusRides.value.length} campus rides");
-        return; // Success, exit retry loop
+        _campusRides.value = rides ?? [];
+        print("Campus rides API response: ${rides?.length ?? 0} rides");
+        print("Campus rides data: $rides"); // Add this line for debugging
+        return;
       } catch (e) {
         retryCount++;
+        print("Campus rides fetch failed, attempt $retryCount: $e");
+        print("Error type: ${e.runtimeType}"); // Add this line
         if (retryCount >= maxRetries) {
           if (_isDisposed) return;
           print("Error fetching campus rides after $maxRetries attempts: $e");
-          _campusRides.value = []; // Set empty list on final failure
+          _campusRides.value = [];
           return;
         }
-
-        // Wait before retrying (exponential backoff)
         await Future.delayed(Duration(seconds: retryCount * 2));
-        print("Retrying campus rides fetch, attempt $retryCount");
       }
     }
   }
@@ -144,24 +145,24 @@ class RidesController extends ChangeNotifier {
 
     while (retryCount < maxRetries) {
       try {
+        print("Attempting to fetch from campus rides, attempt ${retryCount + 1}");
         final rides = await ApiService.getUserFromCampusRides();
         if (_isDisposed) return;
         _fromCampusRides.value = rides ?? [];
-        print("Fetched ${_fromCampusRides.value.length} from campus rides");
+        print("From campus rides API response: ${rides?.length ?? 0} rides");
+        print("From campus rides data: $rides"); // Add this line for debugging
         return;
       } catch (e) {
         retryCount++;
+        print("From campus rides fetch failed, attempt $retryCount: $e");
+        print("Error type: ${e.runtimeType}"); // Add this line
         if (retryCount >= maxRetries) {
           if (_isDisposed) return;
-          print(
-            "Error fetching from campus rides after $maxRetries attempts: $e",
-          );
+          print("Error fetching from campus rides after $maxRetries attempts: $e");
           _fromCampusRides.value = [];
           return;
         }
-
         await Future.delayed(Duration(seconds: retryCount * 2));
-        print("Retrying from campus rides fetch, attempt $retryCount");
       }
     }
   }

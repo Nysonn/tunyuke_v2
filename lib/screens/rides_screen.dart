@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../controllers/rides_controller.dart';
+import 'waiting_screen.dart';
 
 class RidesScreen extends StatefulWidget {
   const RidesScreen({super.key});
@@ -270,6 +271,27 @@ class _RidesScreenState extends State<RidesScreen> {
                 time: _formatDate(ride['scheduled_at'] ?? ''),
                 fare: ride['fare'] ?? 0,
                 rideType: 'Team Ride',
+                onTap: () {
+                  // Navigate to waiting screen with this ride's ID
+                  if (ride['id'] != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => WaitingScreen(rideId: ride['id']),
+                      ),
+                    );
+                  } else {
+                    // Show error if ride ID is missing
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Cannot view ride details: Missing ride ID",
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
               ),
             ),
           ],
