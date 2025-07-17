@@ -1,4 +1,4 @@
-package com.example.tunyuke_v2
+package com.example.tunyuke
 
 import io.flutter.embedding.android.FlutterActivity
 

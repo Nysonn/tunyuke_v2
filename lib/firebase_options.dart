@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAIeEou0Szh_wVKcfa1vQ-Ti-w62VlurzI',
-    appId: '1:411658910745:android:c87453f76fe643ed38be88',
+    appId: '1:411658910745:android:47c15472e745942b38be88',
     messagingSenderId: '411658910745',
     projectId: 'tunyuke',
     storageBucket: 'tunyuke.firebasestorage.app',
@@ -59,7 +59,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyARE0hJ0NN1qOr1tuSXpV_26b3h_IlIXr8',
-    appId: '1:411658910745:ios:a2e416ffac8d184f38be88',
+    appId: '1:411658910745:ios:5475facdb96d941b38be88',
     messagingSenderId: '411658910745',
     projectId: 'tunyuke',
     storageBucket: 'tunyuke.firebasestorage.app',

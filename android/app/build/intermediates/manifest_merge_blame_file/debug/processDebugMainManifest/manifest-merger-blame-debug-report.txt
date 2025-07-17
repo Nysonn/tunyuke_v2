@@ -1,6 +1,6 @@
 1<?xml version="1.0" encoding="utf-8"?>
 2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-3    package="com.example.tunyuke_v2"
+3    package="com.example.tunyuke"
 4    android:versionCode="1"
 5    android:versionName="1.0" >
 6
@@ -57,12 +57,12 @@
 36
 37    <permission
 37-->[androidx.core:core:1.13.1] /home/nyson/.gradle/caches/8.10.2/transforms/0b7740b10500e023bbd402614d9749eb/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
-38        android:name="com.example.tunyuke_v2.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+38        android:name="com.example.tunyuke.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
 38-->[androidx.core:core:1.13.1] /home/nyson/.gradle/caches/8.10.2/transforms/0b7740b10500e023bbd402614d9749eb/transformed/core-1.13.1/AndroidManifest.xml:23:9-81
 39        android:protectionLevel="signature" />
 39-->[androidx.core:core:1.13.1] /home/nyson/.gradle/caches/8.10.2/transforms/0b7740b10500e023bbd402614d9749eb/transformed/core-1.13.1/AndroidManifest.xml:24:9-44
 40
-41    <uses-permission android:name="com.example.tunyuke_v2.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+41    <uses-permission android:name="com.example.tunyuke.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
 41-->[androidx.core:core:1.13.1] /home/nyson/.gradle/caches/8.10.2/transforms/0b7740b10500e023bbd402614d9749eb/transformed/core-1.13.1/AndroidManifest.xml:26:5-97
 41-->[androidx.core:core:1.13.1] /home/nyson/.gradle/caches/8.10.2/transforms/0b7740b10500e023bbd402614d9749eb/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
 42
@@ -79,7 +79,7 @@
 52            android:value="AIzaSyDCNSinfE9P9OqTphs_V84Jl9U8gnYXgMc" />
 53
 54        <activity
-55            android:name="com.example.tunyuke_v2.MainActivity"
+55            android:name="com.example.tunyuke.MainActivity"
 56            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
 57            android:exported="true"
 58            android:hardwareAccelerated="true"
@@ -363,7 +363,7 @@
 218-->[com.google.firebase:firebase-common:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/8d7fb6eb7b755e5a8603a3d138b8aa46/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:23:9-28:39
 219            android:name="com.google.firebase.provider.FirebaseInitProvider"
 219-->[com.google.firebase:firebase-common:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/8d7fb6eb7b755e5a8603a3d138b8aa46/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:24:13-77
-220            android:authorities="com.example.tunyuke_v2.firebaseinitprovider"
+220            android:authorities="com.example.tunyuke.firebaseinitprovider"
 220-->[com.google.firebase:firebase-common:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/8d7fb6eb7b755e5a8603a3d138b8aa46/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:25:13-72
 221            android:directBootAware="true"
 221-->[com.google.firebase:firebase-common:21.0.0] /home/nyson/.gradle/caches/8.10.2/transforms/8d7fb6eb7b755e5a8603a3d138b8aa46/transformed/jetified-firebase-common-21.0.0/AndroidManifest.xml:26:13-43
@@ -375,7 +375,7 @@
 224-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/nyson/.gradle/caches/8.10.2/transforms/f5f529c7ff79e4e70e410f7457794445/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:24:9-32:20
 225            android:name="androidx.startup.InitializationProvider"
 225-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/nyson/.gradle/caches/8.10.2/transforms/f5f529c7ff79e4e70e410f7457794445/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:25:13-67
-226            android:authorities="com.example.tunyuke_v2.androidx-startup"
+226            android:authorities="com.example.tunyuke.androidx-startup"
 226-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/nyson/.gradle/caches/8.10.2/transforms/f5f529c7ff79e4e70e410f7457794445/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:26:13-68
 227            android:exported="false" >
 227-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/nyson/.gradle/caches/8.10.2/transforms/f5f529c7ff79e4e70e410f7457794445/transformed/jetified-lifecycle-process-2.7.0/AndroidManifest.xml:27:13-37

@@ -7,9 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:411658910745:android:c87453f76fe643ed38be88",
+        "mobilesdk_app_id": "1:411658910745:android:47c15472e745942b38be88",
         "android_client_info": {
-          "package_name": "com.example.tunyuke_v2"
+          "package_name": "com.example.tunyuke"
         }
       },
       "oauth_client": [
@@ -29,6 +29,13 @@
             {
               "client_id": "411658910745-u3p9cca15bsgu7855suroid1v2735hfe.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "411658910745-7f2ajk7ub8lv37elv3ffu4s5gk0t84ov.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.tunyukeV2"
+              }
             }
           ]
         }

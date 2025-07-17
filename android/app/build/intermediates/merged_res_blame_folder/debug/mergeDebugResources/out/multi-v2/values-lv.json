@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.tunyuke_v2.app-mergeDebugResources-61:/values-lv/values-lv.xml",
+            "outputFile": "com.example.tunyuke.app-mergeDebugResources-61:/values-lv/values-lv.xml",
             "map": [
                 {
                     "source": "/home/nyson/.gradle/caches/8.10.2/transforms/56372db326ac8a63d13e857b19cbfd3d/transformed/jetified-credentials-1.2.0-rc01/res/values-lv/values-lv.xml",

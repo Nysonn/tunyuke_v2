@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.tunyuke_v2.app-mergeDebugResources-61:/values-bs/values-bs.xml",
+            "outputFile": "com.example.tunyuke.app-mergeDebugResources-61:/values-bs/values-bs.xml",
             "map": [
                 {
                     "source": "/home/nyson/.gradle/caches/8.10.2/transforms/53e8a1536776889b4970f155b8de1731/transformed/jetified-play-services-base-18.3.0/res/values-bs/values.xml",

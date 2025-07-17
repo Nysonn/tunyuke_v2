@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.tunyuke_v2.app-mergeDebugResources-61:/values-watch-v20/values-watch-v20.xml",
+            "outputFile": "com.example.tunyuke.app-mergeDebugResources-61:/values-watch-v20/values-watch-v20.xml",
             "map": [
                 {
                     "source": "/home/nyson/.gradle/caches/8.10.2/transforms/185c3fae7932a5064493eeedf7ffde72/transformed/jetified-play-services-auth-21.0.0/res/values-watch-v20/values.xml",
