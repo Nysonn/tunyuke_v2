@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace   = "com.example.tunyuke_v2"
+    namespace   = "com.example.tunyuke"
     compileSdk  = 35
     ndkVersion  = "27.0.12077973"
 
@@ -23,7 +23,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.tunyuke_v2"
+        applicationId = "com.example.tunyuke"
         minSdk        = 23
         targetSdk     = 35
         versionCode   = 1

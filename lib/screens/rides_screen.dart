@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../controllers/rides_controller.dart';
 import 'waiting_screen.dart';
+import '../components/common/ride_time_formatter.dart';
 
 class RidesScreen extends StatefulWidget {
   const RidesScreen({super.key});
@@ -15,10 +16,17 @@ class _RidesScreenState extends State<RidesScreen> {
   String _formatDate(String dateString) {
     try {
       final date = DateTime.parse(dateString);
-      return DateFormat('MMM dd, yyyy • hh:mm a').format(date);
+      // Convert to local timezone if needed
+      final localDate = date.toLocal();
+      return DateFormat('MMM dd, yyyy • hh:mm a').format(localDate);
     } catch (e) {
       return dateString;
     }
+  }
+
+  String _formatRideTime(String? rideTime) {
+    if (rideTime == null || rideTime.isEmpty) return 'N/A';
+    return formatRideTime(rideTime);
   }
 
   Color _getStatusColor(String status) {
@@ -236,7 +244,7 @@ class _RidesScreenState extends State<RidesScreen> {
             ...controller.campusRides.value.map(
               (ride) => _buildRideCard(
                 title: "To ${ride['pickup_station'] ?? 'Campus'}",
-                subtitle: "Ride Time: ${ride['ride_time'] ?? 'N/A'}",
+                subtitle: "Ride Time: ${_formatRideTime(ride['ride_time'])}",
                 status: ride['status'] ?? 'pending',
                 time: _formatDate(ride['created_at'] ?? ''),
                 fare: ride['fare'] ?? 0,
@@ -250,7 +258,7 @@ class _RidesScreenState extends State<RidesScreen> {
             ...controller.fromCampusRides.value.map(
               (ride) => _buildRideCard(
                 title: "To ${ride['destination'] ?? 'Destination'}",
-                subtitle: "Ride Time: ${ride['ride_time'] ?? 'N/A'}",
+                subtitle: "Ride Time: ${_formatRideTime(ride['ride_time'])}",
                 status: ride['status'] ?? 'pending',
                 time: _formatDate(ride['created_at'] ?? ''),
                 fare: ride['fare'] ?? 0,

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.tunyuke_v2.app-mergeDebugResources-61:/values-fr/values-fr.xml",
+            "outputFile": "com.example.tunyuke.app-mergeDebugResources-61:/values-fr/values-fr.xml",
             "map": [
                 {
                     "source": "/home/nyson/.gradle/caches/8.10.2/transforms/ed373ba55e81c5ac0e32fc16890f628a/transformed/preference-1.2.1/res/values-fr/values-fr.xml",
